@@ -20,7 +20,8 @@ export default function SplashScreen() {
       </div>
       <div style={{
         position: 'absolute', bottom: 24,
-        fontSize: 10, color: '#c0b8d8', letterSpacing: 0.3, opacity: 0.7
+        fontSize: 10, color: '#c0b8d8', letterSpacing: 0.3, opacity: 0.7,
+        whiteSpace: 'nowrap'
       }}>
         powered by staywithdrxam
       </div>
