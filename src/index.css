@@ -134,8 +134,10 @@ select option { background: var(--CARD); }
   border-top: 1px solid var(--BORDER);
   padding: 8px 10px;
   display: flex; flex-direction: column; gap: 6px;
+  flex-shrink: 0;
 }
 .footer-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.credit-line { text-align: center; font-size: 10px; color: var(--MUTED); padding: 6px 10px 14px; line-height: 1.6; }
 .btn {
   font-family: var(--font); border: none; border-radius: 8px;
   padding: 9px 12px; font-size: 11px; font-weight: 700;
@@ -190,8 +192,8 @@ select option { background: var(--CARD); }
 }
 .canvas-scroll canvas {
   display: block;
-  min-width: 700px;
-  min-height: 600px;
+  min-width: 900px;
+  min-height: 500px;
   height: 100%;
 }
 
@@ -322,7 +324,7 @@ tbody td { padding: 7px 10px; color: var(--TEXT); }
 /* Splash */
 .splash {
   position: fixed; inset: 0; z-index: 9999;
-  background: #0f0d1a;
+  background: #f0eeff;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   transition: opacity .4s;
 }
@@ -348,80 +350,113 @@ tbody td { padding: 7px 10px; color: var(--TEXT); }
     display: block;
     height: 100vh;
     padding: 0;
-    padding-bottom: 68px;
+    padding-bottom: calc(94px + env(safe-area-inset-bottom));
   }
 
   /* Show/hide panels via class */
   .panel-hidden-mobile { display: none !important; }
 
   .left-panel {
-    height: calc(100vh - 68px);
+    height: calc(100vh - 94px - env(safe-area-inset-bottom));
     border-radius: 0;
     border: none;
-    border-bottom: 1px solid var(--BORDER);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  /* header sticky so it stays visible while body scrolls */
+  .left-panel .left-header {
+    position: sticky; top: 0; z-index: 10;
+  }
+  /* body no longer scrolls — whole panel scrolls */
+  .left-panel .left-body {
+    overflow-y: visible;
+    flex: none;
+    height: auto;
   }
 
   .right-panel {
-    height: calc(100vh - 68px);
+    height: calc(100vh - 94px - env(safe-area-inset-bottom));
     border-radius: 0;
     border: none;
   }
 
-  /* Canvas: horizontal scroll on mobile */
-  .canvas-wrap { margin: 6px 6px 4px; }
-  .canvas-scroll canvas { min-width: 700px; }
+  /* Header mobile: compact */
+  .left-header-sub { display: none; }
+  .left-header-inner { padding: 8px 12px; }
+  .left-header-title { font-size: 13px; }
 
-  /* Course table smaller */
-  .course-table-wrap { margin: 0 6px 6px; }
-  table { font-size: 10px; }
-  thead th, tbody td { padding: 5px 6px; }
+  /* On mobile: left panel is ONE big scroll — header fixed, rest scrolls */
+  .left-body { padding-bottom: 0; overflow-y: visible; flex: 1; }
+  .left-footer {
+    border-top: none;
+    background: transparent;
+    padding: 6px 10px 16px;
+  }
+  .credit-line { display: block; padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+
+  /* Canvas: fixed tall height on mobile for vertical + horizontal scroll */
+  .canvas-wrap { margin: 6px; }
+  .canvas-scroll { overflow: auto; -webkit-overflow-scrolling: touch; }
+  .canvas-scroll canvas { min-width: 900px; height: 760px !important; min-height: unset; }
+
+  /* Hide course table on mobile (accessible via วิชา tab) */
+  .course-table-wrap { display: none !important; }
 
   /* Stats bar scrollable */
   .stats-bar { padding: 0 10px; gap: 8px; height: 44px; }
 
-  /* ── Bottom tab bar ── */
+  /* ── Bottom tab bar (floating pill) ── */
   .mobile-tabbar {
     display: flex;
-    position: fixed; bottom: 0; left: 0; right: 0;
-    height: 68px; z-index: 400;
+    position: fixed;
+    bottom: calc(14px + env(safe-area-inset-bottom));
+    left: 14px; right: 14px;
+    height: 62px; z-index: 400;
     background: var(--CARD);
-    border-top: 1px solid var(--BORDER);
+    border-radius: 32px;
+    border: 1px solid var(--BORDER);
+    box-shadow: 0 8px 32px rgba(0,0,0,.3), 0 2px 8px rgba(0,0,0,.2);
     align-items: center; justify-content: space-around;
-    padding-bottom: env(safe-area-inset-bottom);
+    padding: 0 10px;
   }
 
   .tab-btn {
     flex: 1; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 3px;
+    align-items: center; justify-content: center; gap: 4px;
     background: none; border: none; cursor: pointer;
-    color: var(--MUTED); padding: 6px 0; height: 100%;
-    transition: color .15s;
+    color: var(--MUTED); padding: 8px 0; height: 100%;
+    transition: color .18s;
     -webkit-tap-highlight-color: transparent;
     font-family: var(--font);
+    border-radius: 24px;
   }
   .tab-btn.active { color: var(--ACCENT); }
-  .tab-icon { font-size: 22px; line-height: 1; }
-  .tab-label { font-size: 10px; font-weight: 700; }
+  .tab-btn.active svg { filter: drop-shadow(0 0 6px var(--ACCENT)); }
+  .tab-icon { display: flex; align-items: center; justify-content: center; line-height: 1; }
+  .tab-label { font-size: 9px; font-weight: 700; letter-spacing: 0.4px; }
 
   .tab-btn.tab-add {
-    width: 58px; height: 58px; flex: none;
+    width: 48px; height: 48px; flex: none;
     background: var(--ACCENT); color: var(--BG);
-    border-radius: 50%;
+    border-radius: 18px;
     box-shadow: 0 4px 20px rgba(0,0,0,.4);
-    padding: 0; margin-bottom: 8px;
+    padding: 0;
     display: flex; align-items: center; justify-content: center;
     transition: transform .15s, filter .15s;
   }
   .tab-btn.tab-add:active { transform: scale(.88); }
-  .tab-btn.tab-add .tab-icon { font-size: 28px; }
+  .tab-btn.tab-add svg { color: var(--BG); }
 
   /* ปุ่มบันทึก+รูปใหญ่ขึ้นใน left panel mobile */
-  .btn-save, .btn-export {
+  .btn-save, .btn-export, .btn-clear {
     height: 48px !important;
     font-size: 13px !important;
-    border-radius: 12px !important;
+    border-radius: 14px !important;
   }
-  .btn-clear { height: 48px !important; font-size: 13px !important; border-radius: 12px !important; }
+
+  /* Footer mobile: ซ่อน credit text */
+  .left-footer > div:last-child { display: none; }
+  .left-footer { padding: 10px 12px 12px; gap: 8px; }
 
   /* Dialog full-height on mobile */
   .dialog-overlay { align-items: flex-end; padding: 0; }

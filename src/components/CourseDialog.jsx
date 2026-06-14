@@ -52,7 +52,7 @@ export default function CourseDialog({ initial, onSubmit, onCancel }) {
               </div>
               <div className="form-group" style={{ maxWidth: 80 }}>
                 <label className="form-label">หมู่เรียน</label>
-                <input className="form-input" placeholder="เช่น 1" value={section} onChange={e => setSection(e.target.value)} />
+                <input className="form-input" placeholder="เช่น 711" value={section} onChange={e => setSection(e.target.value)} />
               </div>
               <div className="form-group" style={{ maxWidth: 80 }}>
                 <label className="form-label">หน่วยกิต</label>

@@ -6,32 +6,29 @@ const START_M = 7 * 60
 const END_M = 20 * 60
 const TOTAL_M = END_M - START_M
 
-// Pastel hue per day — used for column bg + header accent
 const DAY_PASTEL_DARK = [
-  'rgba(120,160,255,0.07)',  // จ  – blue
-  'rgba(255,140,180,0.07)',  // อ  – pink
-  'rgba(100,220,160,0.07)',  // พ  – green
-  'rgba(255,190,100,0.07)',  // พฤ – amber
-  'rgba(200,150,255,0.07)',  // ศ  – purple
-  'rgba(100,220,220,0.07)',  // ส  – teal
-  'rgba(255,200,140,0.07)',  // อา – peach
+  'rgba(120,160,255,0.08)',
+  'rgba(255,140,180,0.08)',
+  'rgba(100,220,160,0.08)',
+  'rgba(255,190,100,0.08)',
+  'rgba(200,150,255,0.08)',
+  'rgba(100,220,220,0.08)',
+  'rgba(255,200,140,0.08)',
 ]
 const DAY_PASTEL_LIGHT = [
-  'rgba(100,140,255,0.10)',
-  'rgba(255,100,160,0.10)',
-  'rgba(60,200,130,0.10)',
-  'rgba(255,160,60,0.10)',
-  'rgba(170,100,255,0.10)',
-  'rgba(40,200,200,0.10)',
-  'rgba(255,160,100,0.10)',
+  'rgba(100,140,255,0.11)',
+  'rgba(255,100,160,0.11)',
+  'rgba(60,200,130,0.11)',
+  'rgba(255,160,60,0.11)',
+  'rgba(170,100,255,0.11)',
+  'rgba(40,200,200,0.11)',
+  'rgba(255,160,100,0.11)',
 ]
-// Header accent colors (solid, per day)
-const DAY_HEADER_DARK = [
-  '#6ea8ff', '#ff8ab4', '#5cd89a', '#ffb84a', '#c084fc', '#34d4d4', '#ffb07a',
-]
-const DAY_HEADER_LIGHT = [
-  '#3b7eff', '#e0457a', '#28a870', '#d97706', '#7c3aed', '#0891b2', '#c2410c',
-]
+const DAY_HEADER_DARK  = ['#6ea8ff','#ff8ab4','#5cd89a','#ffb84a','#c084fc','#34d4d4','#ffb07a']
+const DAY_HEADER_LIGHT = ['#3b7eff','#e0457a','#28a870','#d97706','#7c3aed','#0891b2','#c2410c']
+
+const LABEL_W = 80
+const HEAD_H  = 48
 
 export default function TimetableCanvas({ schedule, conflicts, theme, onSlotHover, onSlotClick }) {
   const canvasRef = useRef()
@@ -42,100 +39,99 @@ export default function TimetableCanvas({ schedule, conflicts, theme, onSlotHove
     const W = canvas.offsetWidth
     const H = canvas.offsetHeight
     if (!W || !H) return
-    canvas.width = W * window.devicePixelRatio
+    canvas.width  = W * window.devicePixelRatio
     canvas.height = H * window.devicePixelRatio
     const ctx = canvas.getContext('2d')
     ctx.scale(window.devicePixelRatio, window.devicePixelRatio)
 
     const t = THEMES[theme] || THEMES.Dark
     const isLight = LIGHT_THEMES.has(theme)
-    const DAY_BG = isLight ? DAY_PASTEL_LIGHT : DAY_PASTEL_DARK
+    const DAY_BG  = isLight ? DAY_PASTEL_LIGHT : DAY_PASTEL_DARK
     const DAY_HDR = isLight ? DAY_HEADER_LIGHT : DAY_HEADER_DARK
 
-    const LABEL_W = 46
-    const HEAD_H = 40
-    const CELL_W = (W - LABEL_W) / DAYS.length
-    const CELL_H = H - HEAD_H
+    const ROW_H  = (H - HEAD_H) / DAYS.length
+    const TIME_W = W - LABEL_W
 
     // ── Background ──────────────────────────────────────
-    ctx.fillStyle = t.BG
+    ctx.fillStyle = t.CANVAS_BG || t.BG
     ctx.fillRect(0, 0, W, H)
 
-    // ── Day column tinted backgrounds ────────────────────
+    // ── Day row tinted backgrounds ───────────────────────
     DAYS.forEach((_, di) => {
       ctx.fillStyle = DAY_BG[di]
-      ctx.fillRect(LABEL_W + di * CELL_W, HEAD_H, CELL_W, CELL_H)
+      ctx.fillRect(LABEL_W, HEAD_H + di * ROW_H, TIME_W, ROW_H)
     })
 
-    // ── Horizontal grid lines ────────────────────────────
-    const marks = TIMES.map(tm => t2m(tm))
-    marks.forEach(m => {
+    // ── Vertical time grid ───────────────────────────────
+    TIMES.map(tm => t2m(tm)).forEach(m => {
       if (m < START_M || m > END_M) return
-      const y = HEAD_H + ((m - START_M) / TOTAL_M) * CELL_H
+      const x = LABEL_W + ((m - START_M) / TOTAL_M) * TIME_W
       const isHour = m % 60 === 0
       ctx.strokeStyle = isHour ? t.GRID_MAJOR : t.GRID_MINOR
-      ctx.lineWidth = isHour ? 0.8 : 0.4
-      ctx.beginPath(); ctx.moveTo(LABEL_W, y); ctx.lineTo(W, y); ctx.stroke()
+      ctx.lineWidth   = isHour ? 0.8 : 0.4
+      ctx.beginPath(); ctx.moveTo(x, HEAD_H); ctx.lineTo(x, H); ctx.stroke()
 
       if (isHour) {
-        const hh = Math.floor(m / 60)
-        ctx.fillStyle = t.MUTED
-        ctx.font = `600 9px 'Noto Sans Thai', sans-serif`
-        ctx.textAlign = 'right'
-        ctx.fillText(`${hh}:00`, LABEL_W - 5, y + 4)
+        const hh = String(Math.floor(m / 60)).padStart(2, '0')
+        ctx.fillStyle  = t.MUTED
+        ctx.font       = `600 11px 'Noto Sans Thai', sans-serif`
+        ctx.textAlign  = 'center'
+        ctx.fillText(`${hh}:00`, x, HEAD_H / 2 + 5)
       }
     })
 
-    // ── Vertical separators ──────────────────────────────
-    DAYS.forEach((_, di) => {
-      const x = LABEL_W + di * CELL_W
+    // ── Horizontal day separator lines ───────────────────
+    for (let di = 0; di <= DAYS.length; di++) {
+      const y = HEAD_H + di * ROW_H
       ctx.strokeStyle = t.GRID_MAJOR
-      ctx.lineWidth = 0.8
-      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke()
-    })
-    // right edge
-    ctx.strokeStyle = t.GRID_MAJOR; ctx.lineWidth = 0.8
-    ctx.beginPath(); ctx.moveTo(W, 0); ctx.lineTo(W, H); ctx.stroke()
-    // label divider
-    ctx.strokeStyle = t.GRID_MAJOR; ctx.lineWidth = 1
-    ctx.beginPath(); ctx.moveTo(LABEL_W, 0); ctx.lineTo(LABEL_W, H); ctx.stroke()
+      ctx.lineWidth   = di === 0 || di === DAYS.length ? 1 : 0.6
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke()
+    }
 
-    // ── Day header cells ─────────────────────────────────
+    // ── Day label column ─────────────────────────────────
     DAYS.forEach((d, di) => {
-      const x0 = LABEL_W + di * CELL_W
-      const cx = x0 + CELL_W / 2
+      const y0 = HEAD_H + di * ROW_H
+      const cy = y0 + ROW_H / 2
 
-      // Header background (slightly tinted)
+      // Row bg tint in label area
       ctx.fillStyle = DAY_BG[di]
-      ctx.fillRect(x0, 0, CELL_W, HEAD_H)
+      ctx.fillRect(0, y0, LABEL_W, ROW_H)
 
-      // Bottom accent bar per day
-      ctx.fillStyle = DAY_HDR[di]
-      ctx.globalAlpha = 0.7
-      ctx.fillRect(x0 + 4, HEAD_H - 3, CELL_W - 8, 3)
+      // Left accent bar
+      ctx.fillStyle   = DAY_HDR[di]
+      ctx.globalAlpha = 0.9
+      ctx.fillRect(0, y0 + 5, 3, ROW_H - 10)
       ctx.globalAlpha = 1
 
-      // Day name
-      ctx.fillStyle = DAY_HDR[di]
-      ctx.font = `700 11px 'Noto Sans Thai', sans-serif`
-      ctx.textAlign = 'center'
-      ctx.fillText(DAY_FULL[d] || d, cx, HEAD_H / 2 + 4)
+      // Day name (full Thai)
+      ctx.fillStyle  = DAY_HDR[di]
+      ctx.font       = `700 10px 'Noto Sans Thai', sans-serif`
+      ctx.textAlign  = 'center'
+      ctx.fillText(DAY_FULL[d] || d, LABEL_W / 2, cy + 4)
     })
 
-    // Top border under header
-    ctx.strokeStyle = t.GRID_MAJOR
-    ctx.lineWidth = 1
-    ctx.beginPath(); ctx.moveTo(0, HEAD_H); ctx.lineTo(W, HEAD_H); ctx.stroke()
+    // ── Header top-left corner ───────────────────────────
+    ctx.fillStyle = t.CANVAS_BG || t.BG
+    ctx.fillRect(0, 0, LABEL_W, HEAD_H)
+    ctx.fillStyle  = t.MUTED
+    ctx.font       = `600 11px 'Noto Sans Thai', sans-serif`
+    ctx.textAlign  = 'center'
+    ctx.fillText('วัน / เวลา', LABEL_W / 2, HEAD_H / 2 + 5)
 
-    // ── Current time indicator (subtle) ─────────────────
+    // ── Border lines ─────────────────────────────────────
+    ctx.strokeStyle = t.GRID_MAJOR; ctx.lineWidth = 1
+    ctx.beginPath(); ctx.moveTo(0, HEAD_H);  ctx.lineTo(W, HEAD_H);  ctx.stroke()
+    ctx.beginPath(); ctx.moveTo(LABEL_W, 0); ctx.lineTo(LABEL_W, H); ctx.stroke()
+
+    // ── Current time indicator (vertical line) ───────────
     const now = new Date()
     const curM = now.getHours() * 60 + now.getMinutes()
     if (curM >= START_M && curM <= END_M) {
-      const y = HEAD_H + ((curM - START_M) / TOTAL_M) * CELL_H
-      ctx.strokeStyle = isLight ? 'rgba(160,80,80,0.2)' : 'rgba(255,160,160,0.18)'
-      ctx.lineWidth = 1
+      const x = LABEL_W + ((curM - START_M) / TOTAL_M) * TIME_W
+      ctx.strokeStyle = isLight ? 'rgba(160,80,80,0.22)' : 'rgba(255,160,160,0.18)'
+      ctx.lineWidth   = 1
       ctx.setLineDash([3, 5])
-      ctx.beginPath(); ctx.moveTo(LABEL_W + 2, y); ctx.lineTo(W - 2, y); ctx.stroke()
+      ctx.beginPath(); ctx.moveTo(x, HEAD_H + 2); ctx.lineTo(x, H - 2); ctx.stroke()
       ctx.setLineDash([])
     }
 
@@ -147,78 +143,92 @@ export default function TimetableCanvas({ schedule, conflicts, theme, onSlotHove
         if (di < 0) return
         const sM = t2m(slot.start), eM = t2m(slot.end)
         if (eM <= START_M || sM >= END_M) return
-        const y0 = HEAD_H + ((Math.max(sM, START_M) - START_M) / TOTAL_M) * CELL_H
-        const y1 = HEAD_H + ((Math.min(eM, END_M) - START_M) / TOTAL_M) * CELL_H
-        const PAD = 3
-        const x0 = LABEL_W + di * CELL_W + PAD
-        const bw = CELL_W - PAD * 2
-        const bh = y1 - y0 - 1
 
-        const baseColor = course.color || '#b4d4ff'
+        const PAD = 3
+        const x0 = LABEL_W + ((Math.max(sM, START_M) - START_M) / TOTAL_M) * TIME_W + PAD
+        const x1 = LABEL_W + ((Math.min(eM, END_M)   - START_M) / TOTAL_M) * TIME_W - PAD
+        const y0 = HEAD_H + di * ROW_H + PAD
+        const bw = x1 - x0
+        const bh = ROW_H - PAD * 2
+        if (bw <= 0) return
+
+        const base = course.color || '#b4d4ff'
 
         // Shadow
-        ctx.shadowColor = 'rgba(0,0,0,0.25)'
-        ctx.shadowBlur = 4
+        ctx.shadowColor   = 'rgba(0,0,0,0.22)'
+        ctx.shadowBlur    = 5
         ctx.shadowOffsetY = 2
 
         // Fill
-        ctx.globalAlpha = 0.9
-        ctx.fillStyle = baseColor
-        roundRect(ctx, x0, y0, bw, bh, 5)
+        ctx.globalAlpha = 0.93
+        ctx.fillStyle   = base
+        roundRect(ctx, x0, y0, bw, bh, 6)
         ctx.fill()
-        ctx.shadowColor = 'transparent'
-        ctx.shadowBlur = 0
-        ctx.shadowOffsetY = 0
+        ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0
         ctx.globalAlpha = 1
 
-        // Left accent stripe
-        ctx.fillStyle = darken(baseColor, 0.25)
-        ctx.globalAlpha = 0.8
-        ctx.fillRect(x0, y0 + 2, 3, bh - 4)
+        // Top accent stripe
+        ctx.fillStyle   = darken(base, 0.22)
+        ctx.globalAlpha = 0.75
+        roundRect(ctx, x0, y0, bw, 3, 3)
+        ctx.fill()
         ctx.globalAlpha = 1
 
         // Conflict overlay
         if (isConflict) {
           ctx.globalAlpha = 0.2
           ctx.fillStyle = '#ff4444'
-          roundRect(ctx, x0, y0, bw, bh, 5)
-          ctx.fill()
+          roundRect(ctx, x0, y0, bw, bh, 6); ctx.fill()
           ctx.globalAlpha = 1
-          ctx.strokeStyle = t.DANGER
-          ctx.lineWidth = 1.5
-          roundRect(ctx, x0, y0, bw, bh, 5)
-          ctx.stroke()
+          ctx.strokeStyle = t.DANGER; ctx.lineWidth = 1.5
+          roundRect(ctx, x0, y0, bw, bh, 6); ctx.stroke()
         }
 
-        // Text
-        const textColor = isLight ? '#1a1a2e' : '#0d0d1a'
-        ctx.globalAlpha = 0.95
-        ctx.fillStyle = textColor
+        // ── Text inside block ────────────────────────────
+        const tc = isLight ? '#1a1a2e' : '#0d0d1a'
+        ctx.globalAlpha = 0.92
+        ctx.fillStyle   = tc
+        ctx.textAlign   = 'left'
+        const tx     = x0 + 6
+        const avail  = bw - 10
 
-        if (bh > 14) {
+        // Time range
+        ctx.font        = `500 8px 'Noto Sans Thai', sans-serif`
+        ctx.globalAlpha = 0.55
+        ctx.fillText(`${slot.start}–${slot.end}`, tx, y0 + 11, avail)
+        ctx.globalAlpha = 0.92
+
+        // Code
+        if (bh > 18) {
           ctx.font = `700 10px 'Noto Sans Thai', sans-serif`
-          ctx.textAlign = 'center'
-          const codeLabel = course.code || ''
-          ctx.fillText(codeLabel.substring(0, 11), x0 + bw / 2, y0 + 13, bw - 8)
+          ctx.fillText((course.code || '').substring(0, 12), tx, y0 + 23, avail)
         }
-        if (bh > 26 && course.name) {
-          ctx.font = `500 9px 'Noto Sans Thai', sans-serif`
-          ctx.globalAlpha = 0.75
-          const nameShort = course.name.length > 10 ? course.name.substring(0, 9) + '…' : course.name
-          ctx.fillText(nameShort, x0 + bw / 2, y0 + 23, bw - 8)
-          ctx.globalAlpha = 0.95
+
+        // Name
+        if (bh > 32 && course.name) {
+          ctx.font        = `500 9px 'Noto Sans Thai', sans-serif`
+          ctx.globalAlpha = 0.72
+          const ns = course.name.length > 18 ? course.name.substring(0, 17) + '…' : course.name
+          ctx.fillText(ns, tx, y0 + 34, avail)
+          ctx.globalAlpha = 0.92
         }
-        if (bh > 38 && slot.room) {
-          ctx.font = `9px 'Noto Sans Thai', sans-serif`
-          ctx.globalAlpha = 0.65
-          ctx.fillText(slot.room.substring(0, 9), x0 + bw / 2, y0 + 33, bw - 8)
+
+        // Room
+        if (bh > 46 && slot.room) {
+          ctx.font        = `9px 'Noto Sans Thai', sans-serif`
+          ctx.globalAlpha = 0.58
+          ctx.fillText(slot.room.substring(0, 14), tx, y0 + 46, avail)
           ctx.globalAlpha = 1
         }
+
+        // LAB badge
         if (slot.isLab) {
-          ctx.font = `bold 7px sans-serif`
-          ctx.fillStyle = '#5b21b6'
-          ctx.globalAlpha = 0.85
-          ctx.fillText('LAB', x0 + 5, y0 + 9)
+          ctx.font       = `bold 7px sans-serif`
+          ctx.fillStyle  = '#5b21b6'
+          ctx.globalAlpha = 0.8
+          ctx.textAlign  = 'right'
+          ctx.fillText('LAB', x0 + bw - 4, y0 + 12)
+          ctx.textAlign  = 'left'
         }
         ctx.globalAlpha = 1
       })
@@ -240,13 +250,12 @@ export default function TimetableCanvas({ schedule, conflicts, theme, onSlotHove
     const mx = e.clientX - rect.left
     const my = e.clientY - rect.top
     const W = rect.width, H = rect.height
-    const LABEL_W = 46, HEAD_H = 40
     if (mx < LABEL_W || my < HEAD_H) return null
-    const CELL_W = (W - LABEL_W) / DAYS.length
-    const CELL_H = H - HEAD_H
-    const di = Math.floor((mx - LABEL_W) / CELL_W)
-    const fracY = (my - HEAD_H) / CELL_H
-    const minM = START_M + fracY * TOTAL_M
+    const ROW_H  = (H - HEAD_H) / DAYS.length
+    const TIME_W = W - LABEL_W
+    const di     = Math.floor((my - HEAD_H) / ROW_H)
+    const fracX  = (mx - LABEL_W) / TIME_W
+    const minM   = START_M + fracX * TOTAL_M
     for (let ci = schedule.length - 1; ci >= 0; ci--) {
       for (const slot of schedule[ci].slots || []) {
         if (DAYS.indexOf(slot.day) !== di) continue
@@ -258,10 +267,8 @@ export default function TimetableCanvas({ schedule, conflicts, theme, onSlotHove
   }
 
   function handleMouseMove(e) {
-    const hit = getSlotAt(e)
-    onSlotHover && onSlotHover(hit || null)
+    onSlotHover && onSlotHover(getSlotAt(e) || null)
   }
-
   function handleClick(e) {
     const hit = getSlotAt(e)
     if (hit) onSlotClick && onSlotClick(hit.ci)
@@ -270,7 +277,7 @@ export default function TimetableCanvas({ schedule, conflicts, theme, onSlotHove
   return (
     <canvas
       ref={canvasRef}
-      style={{ width: '100%', height: '100%', display: 'block', cursor: 'crosshair', imageRendering: 'auto' }}
+      style={{ width: '100%', height: '100%', display: 'block', cursor: 'crosshair' }}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => onSlotHover && onSlotHover(null)}
       onClick={handleClick}
@@ -285,6 +292,7 @@ export default function TimetableCanvas({ schedule, conflicts, theme, onSlotHove
 
 function roundRect(ctx, x, y, w, h, r) {
   r = Math.min(r, w / 2, h / 2)
+  if (r < 0) return
   ctx.beginPath()
   ctx.moveTo(x + r, y)
   ctx.lineTo(x + w - r, y)
@@ -301,9 +309,9 @@ function roundRect(ctx, x, y, w, h, r) {
 function darken(hex, amt) {
   try {
     const n = parseInt(hex.replace('#', ''), 16)
-    const r = Math.max(0, (n >> 16) - Math.round(amt * 255))
+    const r = Math.max(0, (n >> 16)        - Math.round(amt * 255))
     const g = Math.max(0, ((n >> 8) & 0xff) - Math.round(amt * 255))
-    const b = Math.max(0, (n & 0xff) - Math.round(amt * 255))
+    const b = Math.max(0, (n & 0xff)        - Math.round(amt * 255))
     return `rgb(${r},${g},${b})`
   } catch { return hex }
 }

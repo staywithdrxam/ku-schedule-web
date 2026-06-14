@@ -200,9 +200,14 @@ export default function LeftPanel({
         <button className="btn btn-export" onClick={() => exportTimetable({ schedule, conflicts, theme, semester })}>
           🖼 บันทึกรูปภาพตาราง
         </button>
-        <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--MUTED)', paddingTop: 2, lineHeight: 1.6 }}>
-          by น้องดรีม · วิทย์คอม ปี 2 · ม.เกษตรศาสตร์ กำแพงแสน
-        </div>
+      </div>
+
+      {/* Credit line */}
+      <div className="credit-line">
+        by น้องดรีม · วิทย์คอม ปี 2 · ม.เกษตรศาสตร์ กำแพงแสน
+        <span style={{ display: 'block', fontSize: 9, opacity: 0.55, marginTop: 2 }}>
+          powered by staywithdrxam
+        </span>
       </div>
     </div>
   )
