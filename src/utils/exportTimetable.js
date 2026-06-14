@@ -19,9 +19,15 @@ const DAY_HEADER_DARK  = ['#6ea8ff','#ff8ab4','#5cd89a','#ffb84a','#c084fc','#34
 const DAY_HEADER_LIGHT = ['#3b7eff','#e0457a','#28a870','#d97706','#7c3aed','#0891b2','#c2410c']
 
 export function exportTimetable({ schedule, conflicts, theme, semester }) {
-  // A3 landscape @ 150 dpi-ish  →  4200 × 2970  → scale down to print nicely
-  const W = 4200
-  const H = 2970
+  // Horizontal layout: days = rows, time = columns (matches screen timetable)
+  const W       = 4800
+  const INFO_H  = 110   // top info bar
+  const LABEL_W = 170   // day label column on left
+  const HEAD_H  = 90    // time header row
+  const ROW_H   = 270   // height per day row — generous for readability
+  const FOOT_H  = 70
+  const H       = INFO_H + HEAD_H + DAYS.length * ROW_H + FOOT_H
+  const TIME_W  = W - LABEL_W
 
   const canvas = document.createElement('canvas')
   canvas.width  = W
@@ -33,173 +39,250 @@ export function exportTimetable({ schedule, conflicts, theme, semester }) {
   const DAY_BG  = isLight ? DAY_PASTEL_LIGHT : DAY_PASTEL_DARK
   const DAY_HDR = isLight ? DAY_HEADER_LIGHT : DAY_HEADER_DARK
 
-  const LABEL_W = 110
-  const INFO_H  = 80
-  const HEAD_H  = 80
-  const FOOT_H  = 56
-  const CELL_W  = (W - LABEL_W) / DAYS.length
-  const CELL_H  = H - INFO_H - HEAD_H - FOOT_H
-  const TOP     = INFO_H  // where the timetable area starts
-
   const f = (size, bold = false) =>
-    `${bold ? 'bold ' : ''}${size}px 'Noto Sans Thai', sans-serif`
+    `${bold ? '700 ' : '400 '}${size}px 'Noto Sans Thai', sans-serif`
 
-  // ── Background ──────────────────────────────────────────────────────
-  ctx.fillStyle = t.BG
+  const TIMETABLE_TOP = INFO_H
+
+  // ── Background ────────────────────────────────────────────
+  ctx.fillStyle = t.CANVAS_BG || t.BG
   ctx.fillRect(0, 0, W, H)
 
-  // ── Info bar ─────────────────────────────────────────────────────────
-  ctx.fillStyle = t.CARD
+  // ── Info bar ──────────────────────────────────────────────
+  ctx.fillStyle = t.CARD || t.BG
   ctx.fillRect(0, 0, W, INFO_H)
   ctx.fillStyle = t.ACCENT
-  ctx.fillRect(0, 0, W, 6)   // accent stripe top
+  ctx.fillRect(0, 0, W, 7)
 
   const totalCr    = schedule.reduce((s, c) => s + (Number(c.credits) || 0), 0)
   const totalSlots = schedule.reduce((s, c) => s + (c.slots || []).length, 0)
 
   ctx.fillStyle = t.TEXT
-  ctx.font = f(28, true)
+  ctx.font = f(36, true)
   ctx.textAlign = 'left'
-  ctx.fillText('ตารางเรียน', 24, INFO_H / 2 + 10)
+  ctx.fillText('ตารางเรียน', 28, INFO_H / 2 + 13)
 
   ctx.fillStyle = t.MUTED
-  ctx.font = f(22)
+  ctx.font = f(26)
   ctx.fillText(
     `${semester}   ·   ${schedule.length} วิชา   ·   ${totalCr} หน่วยกิต   ·   ${totalSlots} คาบ/สัปดาห์`,
-    280, INFO_H / 2 + 10
+    340, INFO_H / 2 + 13
   )
 
   const now     = new Date()
-  const dateStr = `${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()+543}`
+  const dateStr = `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear() + 543}`
   ctx.textAlign = 'right'
-  ctx.font = f(20)
-  ctx.fillText(dateStr, W - 24, INFO_H / 2 + 10)
+  ctx.font = f(24)
+  ctx.fillText(dateStr, W - 28, INFO_H / 2 + 13)
 
-  // ── Day column tinted backgrounds ────────────────────────────────────
+  // ── Day row tinted backgrounds ────────────────────────────
   DAYS.forEach((_, di) => {
     ctx.fillStyle = DAY_BG[di]
-    ctx.fillRect(LABEL_W + di * CELL_W, TOP + HEAD_H, CELL_W, CELL_H)
+    ctx.fillRect(LABEL_W, TIMETABLE_TOP + HEAD_H + di * ROW_H, TIME_W, ROW_H)
   })
 
-  // ── Horizontal grid lines ────────────────────────────────────────────
-  const marks = TIMES.map(tm => t2m(tm))
-  marks.forEach(m => {
+  // ── Vertical time grid + time labels ─────────────────────
+  TIMES.map(tm => t2m(tm)).forEach(m => {
     if (m < START_M || m > END_M) return
-    const y      = TOP + HEAD_H + ((m - START_M) / TOTAL_M) * CELL_H
+    const x      = LABEL_W + ((m - START_M) / TOTAL_M) * TIME_W
     const isHour = m % 60 === 0
     ctx.strokeStyle = isHour ? t.GRID_MAJOR : t.GRID_MINOR
-    ctx.lineWidth   = isHour ? 1.5 : 0.7
-    ctx.beginPath(); ctx.moveTo(LABEL_W, y); ctx.lineTo(W, y); ctx.stroke()
+    ctx.lineWidth   = isHour ? 1.5 : 0.6
+    ctx.beginPath()
+    ctx.moveTo(x, TIMETABLE_TOP + HEAD_H)
+    ctx.lineTo(x, TIMETABLE_TOP + HEAD_H + DAYS.length * ROW_H)
+    ctx.stroke()
+
     if (isHour) {
+      const hh     = String(Math.floor(m / 60)).padStart(2, '0')
+      const labelY = TIMETABLE_TOP + HEAD_H / 2 + 10
       ctx.fillStyle = t.MUTED
-      ctx.font      = f(20, true)
-      ctx.textAlign = 'right'
-      ctx.fillText(`${Math.floor(m / 60)}:00`, LABEL_W - 10, y + 8)
+      ctx.font      = f(26, true)
+      if (m === START_M) {
+        ctx.textAlign = 'left'
+        ctx.fillText(`${hh}:00`, x + 4, labelY)
+      } else if (m === END_M) {
+        ctx.textAlign = 'right'
+        ctx.fillText(`${hh}:00`, x - 4, labelY)
+      } else {
+        ctx.textAlign = 'center'
+        ctx.fillText(`${hh}:00`, x, labelY)
+      }
     }
   })
 
-  // ── Vertical separators ──────────────────────────────────────────────
-  DAYS.forEach((_, di) => {
-    const x = LABEL_W + di * CELL_W
-    ctx.strokeStyle = t.GRID_MAJOR; ctx.lineWidth = 1
-    ctx.beginPath(); ctx.moveTo(x, TOP); ctx.lineTo(x, TOP + HEAD_H + CELL_H); ctx.stroke()
-  })
-  ctx.beginPath(); ctx.moveTo(W, TOP);      ctx.lineTo(W, TOP + HEAD_H + CELL_H); ctx.stroke()
-  ctx.beginPath(); ctx.moveTo(LABEL_W, TOP); ctx.lineTo(LABEL_W, TOP + HEAD_H + CELL_H); ctx.stroke()
+  // ── Horizontal day separator lines ────────────────────────
+  for (let di = 0; di <= DAYS.length; di++) {
+    const y = TIMETABLE_TOP + HEAD_H + di * ROW_H
+    ctx.strokeStyle = t.GRID_MAJOR
+    ctx.lineWidth   = di === 0 || di === DAYS.length ? 1.5 : 0.8
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke()
+  }
 
-  // ── Day headers ──────────────────────────────────────────────────────
+  // ── Day label column ──────────────────────────────────────
   DAYS.forEach((d, di) => {
-    const x0 = LABEL_W + di * CELL_W
-    const cx  = x0 + CELL_W / 2
+    const y0 = TIMETABLE_TOP + HEAD_H + di * ROW_H
+    const cy = y0 + ROW_H / 2
+
+    // row bg tint in label area
     ctx.fillStyle = DAY_BG[di]
-    ctx.fillRect(x0, TOP, CELL_W, HEAD_H)
-    // accent bar bottom of header
-    ctx.fillStyle = DAY_HDR[di]
-    ctx.globalAlpha = 0.7
-    ctx.fillRect(x0 + 10, TOP + HEAD_H - 6, CELL_W - 20, 6)
+    ctx.fillRect(0, y0, LABEL_W, ROW_H)
+
+    // left accent bar
+    ctx.fillStyle   = DAY_HDR[di]
+    ctx.globalAlpha = 0.9
+    ctx.fillRect(0, y0 + 12, 7, ROW_H - 24)
     ctx.globalAlpha = 1
-    ctx.fillStyle  = DAY_HDR[di]
-    ctx.font       = f(26, true)
-    ctx.textAlign  = 'center'
-    ctx.fillText(DAY_FULL[d] || d, cx, TOP + HEAD_H / 2 + 10)
+
+    // day name full Thai
+    ctx.fillStyle = DAY_HDR[di]
+    ctx.font      = f(28, true)
+    ctx.textAlign = 'center'
+    ctx.fillText(DAY_FULL[d] || d, LABEL_W / 2, cy + 10)
   })
 
-  // header bottom border
-  ctx.strokeStyle = t.GRID_MAJOR; ctx.lineWidth = 1.5
-  ctx.beginPath(); ctx.moveTo(0, TOP + HEAD_H); ctx.lineTo(W, TOP + HEAD_H); ctx.stroke()
-  ctx.beginPath(); ctx.moveTo(0, TOP);           ctx.lineTo(W, TOP);           ctx.stroke()
+  // ── Corner cell ───────────────────────────────────────────
+  ctx.fillStyle = t.CANVAS_BG || t.BG
+  ctx.fillRect(0, TIMETABLE_TOP, LABEL_W, HEAD_H)
+  ctx.fillStyle = t.MUTED
+  ctx.font      = f(22, true)
+  ctx.textAlign = 'center'
+  ctx.fillText('วัน', LABEL_W / 2, TIMETABLE_TOP + HEAD_H / 2 - 4)
+  ctx.fillText('เวลา', LABEL_W / 2, TIMETABLE_TOP + HEAD_H / 2 + 24)
 
-  // ── Course blocks ────────────────────────────────────────────────────
+  // ── Border lines ──────────────────────────────────────────
+  ctx.strokeStyle = t.GRID_MAJOR; ctx.lineWidth = 1.5
+  ctx.beginPath(); ctx.moveTo(0, TIMETABLE_TOP + HEAD_H); ctx.lineTo(W, TIMETABLE_TOP + HEAD_H); ctx.stroke()
+  ctx.beginPath(); ctx.moveTo(LABEL_W, TIMETABLE_TOP); ctx.lineTo(LABEL_W, TIMETABLE_TOP + HEAD_H + DAYS.length * ROW_H); ctx.stroke()
+
+  // ── Course blocks ─────────────────────────────────────────
   schedule.forEach((course, ci) => {
     const isConflict = conflicts.has(ci)
     ;(course.slots || []).forEach(slot => {
-      const di = DAYS.indexOf(slot.day); if (di < 0) return
+      const di = DAYS.indexOf(slot.day)
+      if (di < 0) return
       const sM = t2m(slot.start), eM = t2m(slot.end)
       if (eM <= START_M || sM >= END_M) return
-      const y0 = TOP + HEAD_H + ((Math.max(sM, START_M) - START_M) / TOTAL_M) * CELL_H
-      const y1 = TOP + HEAD_H + ((Math.min(eM, END_M)   - START_M) / TOTAL_M) * CELL_H
-      const PAD = 6
-      const x0  = LABEL_W + di * CELL_W + PAD
-      const bw  = CELL_W - PAD * 2
-      const bh  = y1 - y0 - 3
 
-      ctx.shadowColor = 'rgba(0,0,0,0.22)'; ctx.shadowBlur = 12; ctx.shadowOffsetY = 4
-      ctx.globalAlpha = 0.92
-      ctx.fillStyle   = course.color || '#b4d4ff'
-      rr(ctx, x0, y0, bw, bh, 10); ctx.fill()
+      const PAD = 5
+      const x0  = LABEL_W + ((Math.max(sM, START_M) - START_M) / TOTAL_M) * TIME_W + PAD
+      const x1  = LABEL_W + ((Math.min(eM, END_M)   - START_M) / TOTAL_M) * TIME_W - PAD
+      const y0  = TIMETABLE_TOP + HEAD_H + di * ROW_H + PAD
+      const bw  = x1 - x0
+      const bh  = ROW_H - PAD * 2
+      if (bw <= 0) return
+
+      const base = course.color || '#b4d4ff'
+
+      // Shadow + fill
+      ctx.shadowColor   = 'rgba(0,0,0,0.22)'
+      ctx.shadowBlur    = 14
+      ctx.shadowOffsetY = 4
+      ctx.globalAlpha   = 0.93
+      ctx.fillStyle     = base
+      rr(ctx, x0, y0, bw, bh, 12); ctx.fill()
       ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0
       ctx.globalAlpha = 1
 
-      // left accent stripe
-      ctx.fillStyle   = darken(course.color || '#b4d4ff', 0.28)
-      ctx.globalAlpha = 0.85
-      ctx.fillRect(x0, y0 + 6, 6, bh - 12)
+      // Top accent stripe
+      ctx.fillStyle   = darken(base, 0.25)
+      ctx.globalAlpha = 0.8
+      rr(ctx, x0, y0, bw, 8, 4); ctx.fill()
       ctx.globalAlpha = 1
 
+      // Conflict overlay
       if (isConflict) {
         ctx.globalAlpha = 0.2; ctx.fillStyle = '#ff4444'
-        rr(ctx, x0, y0, bw, bh, 10); ctx.fill()
+        rr(ctx, x0, y0, bw, bh, 12); ctx.fill()
         ctx.globalAlpha = 1; ctx.strokeStyle = '#ff4444'; ctx.lineWidth = 3
-        rr(ctx, x0, y0, bw, bh, 10); ctx.stroke()
+        rr(ctx, x0, y0, bw, bh, 12); ctx.stroke()
       }
 
-      // text
-      ctx.globalAlpha = 0.95
-      ctx.fillStyle   = isLight ? '#111827' : '#0d0d1a'
-      ctx.textAlign   = 'center'
-      if (bh > 30) {
-        ctx.font = f(22, true)
-        ctx.fillText((course.code || course.name || '').substring(0, 12), x0 + bw/2, y0 + 28, bw - 16)
-      }
-      if (bh > 58 && course.name) {
-        ctx.font = f(19); ctx.globalAlpha = 0.72
-        const nm = course.name.length > 14 ? course.name.substring(0, 13) + '…' : course.name
-        ctx.fillText(nm, x0 + bw/2, y0 + 50, bw - 16)
-        ctx.globalAlpha = 0.95
-      }
-      if (bh > 80 && slot.room) {
-        ctx.font = f(18); ctx.globalAlpha = 0.6
-        ctx.fillText(slot.room.substring(0, 12), x0 + bw/2, y0 + 70, bw - 16)
-      }
+      // ── Text ──
+      const tc  = isLight ? '#111827' : '#0d0d1a'
+      const tx  = x0 + 14
+      const avW = bw - 28
+      ctx.textAlign = 'left'
+
+      // Time range (small, top)
+      ctx.font        = f(20)
+      ctx.fillStyle   = tc
+      ctx.globalAlpha = 0.55
+      ctx.fillText(`${slot.start} – ${slot.end}`, tx, y0 + 26, avW)
       ctx.globalAlpha = 1
+
+      // Code (large bold)
+      if (bh > 40) {
+        ctx.font      = f(36, true)
+        ctx.fillStyle = tc
+        ctx.fillText((course.code || course.name || '').substring(0, 13), tx, y0 + 72, avW)
+      }
+
+      // Name
+      if (bh > 86 && course.name) {
+        ctx.font        = f(26)
+        ctx.globalAlpha = 0.75
+        const nm = course.name.length > 22 ? course.name.substring(0, 21) + '…' : course.name
+        ctx.fillText(nm, tx, y0 + 108, avW)
+        ctx.globalAlpha = 1
+      }
+
+      // Room
+      if (bh > 120 && slot.room) {
+        ctx.font        = f(22)
+        ctx.globalAlpha = 0.6
+        ctx.fillText(slot.room.substring(0, 18), tx, y0 + 140, avW)
+        ctx.globalAlpha = 1
+      }
+
+      // Instructor
+      if (bh > 155 && course.instructor) {
+        ctx.font        = f(22)
+        ctx.globalAlpha = 0.55
+        ctx.fillText(course.instructor.substring(0, 22), tx, y0 + 168, avW)
+        ctx.globalAlpha = 1
+      }
+
+      // Section badge (top-right)
+      if (course.section) {
+        ctx.font        = f(20, true)
+        ctx.fillStyle   = tc
+        ctx.globalAlpha = 0.6
+        ctx.textAlign   = 'right'
+        ctx.fillText(`หมู่ ${course.section}`, x0 + bw - 10, y0 + 26, 120)
+        ctx.textAlign   = 'left'
+        ctx.globalAlpha = 1
+      }
+
+      // LAB badge
+      if (slot.isLab) {
+        ctx.font        = f(18, true)
+        ctx.fillStyle   = '#5b21b6'
+        ctx.globalAlpha = 0.85
+        ctx.textAlign   = 'right'
+        ctx.fillText('LAB', x0 + bw - 10, y0 + 50)
+        ctx.textAlign   = 'left'
+        ctx.globalAlpha = 1
+      }
     })
   })
 
-  // ── Footer ───────────────────────────────────────────────────────────
-  const fy = TOP + HEAD_H + CELL_H
-  ctx.fillStyle = t.CARD
+  // ── Footer ────────────────────────────────────────────────
+  const fy = TIMETABLE_TOP + HEAD_H + DAYS.length * ROW_H
+  ctx.fillStyle = t.CARD || t.BG
   ctx.fillRect(0, fy, W, FOOT_H)
   ctx.fillStyle = t.ACCENT
-  ctx.fillRect(0, H - 5, W, 5)
+  ctx.fillRect(0, H - 6, W, 6)
 
-  ctx.fillStyle  = t.MUTED
-  ctx.font       = f(18)
-  ctx.textAlign  = 'left'
-  ctx.fillText('by น้องดรีม · วิทย์คอม ปี 2 ม.เกษตรศาสตร์ กำแพงแสน', 24, fy + FOOT_H/2 + 7)
-  ctx.textAlign  = 'right'
-  ctx.fillText('Schedule Planner', W - 24, fy + FOOT_H/2 + 7)
+  ctx.fillStyle = t.MUTED
+  ctx.font      = f(22)
+  ctx.textAlign = 'left'
+  ctx.fillText('by น้องดรีม · วิทย์คอม ปี 2 ม.เกษตรศาสตร์ กำแพงแสน', 28, fy + FOOT_H / 2 + 8)
+  ctx.textAlign = 'right'
+  ctx.font      = f(20)
+  ctx.fillText('powered by staywithdrxam · Schedule Planner', W - 28, fy + FOOT_H / 2 + 8)
 
-  // ── Download as PNG ──────────────────────────────────────────────────
+  // ── Download ──────────────────────────────────────────────
   const url  = canvas.toDataURL('image/png')
   const a    = document.createElement('a')
   a.href     = url
@@ -210,12 +293,12 @@ export function exportTimetable({ schedule, conflicts, theme, semester }) {
 }
 
 function rr(ctx, x, y, w, h, r) {
-  r = Math.min(r, w/2, h/2)
+  r = Math.min(r, w / 2, h / 2)
   ctx.beginPath()
-  ctx.moveTo(x+r, y); ctx.lineTo(x+w-r, y); ctx.quadraticCurveTo(x+w, y, x+w, y+r)
-  ctx.lineTo(x+w, y+h-r); ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h)
-  ctx.lineTo(x+r, y+h); ctx.quadraticCurveTo(x, y+h, x, y+h-r)
-  ctx.lineTo(x, y+r); ctx.quadraticCurveTo(x, y, x+r, y)
+  ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r)
+  ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
+  ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r)
+  ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y)
   ctx.closePath()
 }
 
