@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 
 export default function SplashScreen() {
   const [fadeOut, setFadeOut] = useState(false)
+  const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
 
   useEffect(() => {
     const t = setTimeout(() => setFadeOut(true), 1100)
@@ -15,13 +16,13 @@ export default function SplashScreen() {
       <div style={{ marginTop: 20, fontSize: 15, fontWeight: 700, color: '#6c63ff', letterSpacing: 1 }}>
         Schedule Planner
       </div>
-      <div style={{ marginTop: 8, fontSize: 12, color: '#9090b0' }}>
+      <div style={{ marginTop: 8, fontSize: 12, color: isDark ? '#7070a0' : '#9090b0' }}>
         กำลังโหลด...
       </div>
       <div style={{
         position: 'absolute', bottom: 24,
-        fontSize: 10, color: '#c0b8d8', letterSpacing: 0.3, opacity: 0.7,
-        whiteSpace: 'nowrap'
+        fontSize: 10, color: isDark ? '#4a4a70' : '#c0b8d8',
+        letterSpacing: 0.3, opacity: 0.7, whiteSpace: 'nowrap'
       }}>
         powered by staywithdrxam
       </div>

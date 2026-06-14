@@ -328,6 +328,9 @@ tbody td { padding: 7px 10px; color: var(--TEXT); }
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   transition: opacity .4s;
 }
+@media (prefers-color-scheme: dark) {
+  .splash { background: #13131f; }
+}
 .splash.fade-out { opacity: 0; pointer-events: none; }
 .splash img { width: 140px; animation: splash-pop .5s ease; }
 @keyframes splash-pop { from { transform: scale(.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
