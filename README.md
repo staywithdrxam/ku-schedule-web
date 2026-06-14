@@ -15,20 +15,20 @@
 
 ---
 
-## ✨ Features
+## Features
 
-- 🎨 **10 Themes** — Dark, Light, Ocean, Sakura, Forest, Sunset, Midnight, Lavender, Neon, Coffee
-- 📊 **Timetable Canvas** — ตารางเรียนแบบ visual พร้อมสีพาสเทลแต่ละวัน
-- ⚡ **Conflict Detection** — ตรวจจับวิชาที่เวลาตีกันแบบ real-time
-- 💾 **localStorage** — บันทึกข้อมูลในเบราว์เซอร์ ไม่ต้องล็อกอิน
-- 🖼️ **Export PNG** — ส่งออกตารางเรียนเป็นรูปภาพ A3 ความละเอียดสูง
-- 📋 **Copy Codes** — คัดลอกรหัสวิชาสำหรับลงทะเบียนได้เลย
-- 🎨 **Color Wheel** — เลือกสีวิชาด้วย color wheel แบบ custom
-- 📱 **Responsive** — ใช้งานได้บนมือถือ, iPad, และ Desktop
+- Dark, Light, Ocean, Sakura, Forest, Sunset, Midnight, Lavender, Neon, Coffee
+- ตารางเรียนแบบ visual พร้อมสีพาสเทลแต่ละวัน
+- ตรวจจับวิชาที่เวลาตีกันแบบ real-time
+- บันทึกข้อมูลในเบราว์เซอร์ ไม่ต้องล็อกอิน
+- ส่งออกตารางเรียนเป็นรูปภาพ A3 ความละเอียดสูง
+- คัดลอกรหัสวิชาสำหรับลงทะเบียนได้เลย
+- เลือกสีวิชาด้วย color wheel แบบ custom
+- ใช้งานได้บนมือถือ, iPad, และ Desktop
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Tech |
 |-------|------|
@@ -41,7 +41,7 @@
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ```bash
 # Clone
