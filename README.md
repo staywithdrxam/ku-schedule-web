@@ -1,34 +1,34 @@
 <div align="center">
 
-# 📅 Schedule Planner
+# Schedule Planner
 
-**จัดตารางเรียนออนไลน์ — สำหรับนักศึกษา ม.เกษตรศาสตร์ กำแพงแสน**
+**จัดตารางเรียนออนไลน์ — สำหรับนิสิต ม.เก(ษตรศาสตร์)**
 
 [![React](https://img.shields.io/badge/React-18-61dafb?style=flat-square&logo=react)](https://react.dev)
 [![Vite](https://img.shields.io/badge/Vite-5-646cff?style=flat-square&logo=vite)](https://vitejs.dev)
 [![Vercel](https://img.shields.io/badge/Deployed-Vercel-000?style=flat-square&logo=vercel)](https://ku-schedule-web.vercel.app)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
-**[🌐 เปิดใช้งาน →](https://ku-schedule-web.vercel.app)**
+**(https://ku-schedule-web.vercel.app)**
 
 </div>
 
 ---
 
-## ✨ Features
+## Features
 
-- 🎨 **10 Themes** — Dark, Light, Ocean, Sakura, Forest, Sunset, Midnight, Lavender, Neon, Coffee
-- 📊 **Timetable Canvas** — ตารางเรียนแบบ visual พร้อมสีพาสเทลแต่ละวัน
-- ⚡ **Conflict Detection** — ตรวจจับวิชาที่เวลาตีกันแบบ real-time
-- 💾 **localStorage** — บันทึกข้อมูลในเบราว์เซอร์ ไม่ต้องล็อกอิน
-- 🖼️ **Export PNG** — ส่งออกตารางเรียนเป็นรูปภาพ A3 ความละเอียดสูง
-- 📋 **Copy Codes** — คัดลอกรหัสวิชาสำหรับลงทะเบียนได้เลย
-- 🎨 **Color Wheel** — เลือกสีวิชาด้วย color wheel แบบ custom
-- 📱 **Responsive** — ใช้งานได้บนมือถือ, iPad, และ Desktop
+- Dark, Light, Ocean, Sakura, Forest, Sunset, Midnight, Lavender, Neon, Coffee
+- ตารางเรียนแบบ visual พร้อมสีพาสเทลแต่ละวัน
+- ตรวจจับวิชาที่เวลาตีกันแบบ real-time
+- บันทึกข้อมูลในเบราว์เซอร์ ไม่ต้องล็อกอิน
+- ส่งออกตารางเรียนเป็นรูปภาพ A3 ความละเอียดสูง
+- คัดลอกรหัสวิชาสำหรับลงทะเบียนได้เลย
+- เลือกสีวิชาด้วย color wheel แบบ custom
+- ใช้งานได้บนมือถือ, iPad, และ Desktop
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Tech |
 |-------|------|
@@ -41,7 +41,7 @@
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ```bash
 # Clone
