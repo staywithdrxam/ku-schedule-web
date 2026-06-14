@@ -73,10 +73,19 @@ export default function TimetableCanvas({ schedule, conflicts, theme, onSlotHove
 
       if (isHour) {
         const hh = String(Math.floor(m / 60)).padStart(2, '0')
-        ctx.fillStyle  = t.MUTED
-        ctx.font       = `600 11px 'Noto Sans Thai', sans-serif`
-        ctx.textAlign  = 'center'
-        ctx.fillText(`${hh}:00`, x, HEAD_H / 2 + 5)
+        ctx.fillStyle = t.MUTED
+        ctx.font      = `600 11px 'Noto Sans Thai', sans-serif`
+        const labelY  = HEAD_H / 2 + 5
+        if (m === START_M) {
+          ctx.textAlign = 'left'
+          ctx.fillText(`${hh}:00`, x + 3, labelY)
+        } else if (m === END_M) {
+          ctx.textAlign = 'right'
+          ctx.fillText(`${hh}:00`, x - 3, labelY)
+        } else {
+          ctx.textAlign = 'center'
+          ctx.fillText(`${hh}:00`, x, labelY)
+        }
       }
     })
 
