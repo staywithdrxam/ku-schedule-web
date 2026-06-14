@@ -122,10 +122,11 @@ export default function TimetableCanvas({ schedule, conflicts, theme, onSlotHove
     // ── Header top-left corner ───────────────────────────
     ctx.fillStyle = t.CANVAS_BG || t.BG
     ctx.fillRect(0, 0, LABEL_W, HEAD_H)
-    ctx.fillStyle  = t.MUTED
-    ctx.font       = `600 11px 'Noto Sans Thai', sans-serif`
-    ctx.textAlign  = 'center'
-    ctx.fillText('วัน / เวลา', LABEL_W / 2, HEAD_H / 2 + 5)
+    ctx.fillStyle = t.MUTED
+    ctx.font      = `600 10px 'Noto Sans Thai', sans-serif`
+    ctx.textAlign = 'center'
+    ctx.fillText('วัน', LABEL_W / 2, HEAD_H / 2 - 2)
+    ctx.fillText('เวลา', LABEL_W / 2, HEAD_H / 2 + 11)
 
     // ── Border lines ─────────────────────────────────────
     ctx.strokeStyle = t.GRID_MAJOR; ctx.lineWidth = 1
