@@ -10,6 +10,11 @@ const STORAGE_KEY = 'ku_schedule_v1'
 const STORAGE_THEME = 'ku_theme_v1'
 const STORAGE_SEM = 'ku_semester_v1'
 const STORAGE_MAX_CR = 'ku_max_cr_v1'
+const STORAGE_AUTO = 'ku_theme_auto_v1'
+
+function getSystemTheme() {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'Dark' : 'Light'
+}
 
 function applyTheme(name) {
   const t = THEMES[name] || THEMES.Dark
@@ -23,7 +28,12 @@ function assignColors(schedule) {
 
 export default function App() {
   const [splash, setSplash] = useState(true)
-  const [theme, setTheme] = useState(() => localStorage.getItem(STORAGE_THEME) || 'Light')
+  const [isAuto, setIsAuto] = useState(() => localStorage.getItem(STORAGE_AUTO) !== 'false')
+  const [theme, setThemeRaw] = useState(() => {
+    const auto = localStorage.getItem(STORAGE_AUTO) !== 'false'
+    if (!auto) return localStorage.getItem(STORAGE_THEME) || 'Light'
+    return getSystemTheme()
+  })
   const [semester, setSemester] = useState(() => localStorage.getItem(STORAGE_SEM) || 'ภาคต้นการศึกษา')
   const [maxCr, setMaxCr] = useState(() => parseInt(localStorage.getItem(STORAGE_MAX_CR) || '21'))
   const [schedule, setSchedule] = useState(() => {
@@ -37,10 +47,30 @@ export default function App() {
   const [unsaved, setUnsaved] = useState(false)
   const [activeTab, setActiveTab] = useState('timetable')
 
+  const setTheme = useCallback((val) => {
+    if (val === '__auto__') {
+      setIsAuto(true)
+      localStorage.setItem(STORAGE_AUTO, 'true')
+      setThemeRaw(getSystemTheme())
+    } else {
+      setIsAuto(false)
+      localStorage.setItem(STORAGE_AUTO, 'false')
+      localStorage.setItem(STORAGE_THEME, val)
+      setThemeRaw(val)
+    }
+  }, [])
+
   useEffect(() => {
     applyTheme(theme)
-    localStorage.setItem(STORAGE_THEME, theme)
   }, [theme])
+
+  useEffect(() => {
+    if (!isAuto) return
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const handler = (e) => setThemeRaw(e.matches ? 'Dark' : 'Light')
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [isAuto])
 
   useEffect(() => { localStorage.setItem(STORAGE_SEM, semester) }, [semester])
   useEffect(() => { localStorage.setItem(STORAGE_MAX_CR, String(maxCr)) }, [maxCr])
@@ -96,7 +126,7 @@ export default function App() {
         {/* Left panel — hidden on mobile when timetable tab active */}
         <LeftPanel
           className={activeTab !== 'settings' ? 'panel-hidden-mobile' : ''}
-          theme={theme} setTheme={setTheme}
+          theme={theme} setTheme={setTheme} isAuto={isAuto}
           semester={semester} setSemester={setSemester}
           schedule={schedule} totalCr={totalCr} maxCr={maxCr} setMaxCr={setMaxCr}
           conflicts={conflicts}

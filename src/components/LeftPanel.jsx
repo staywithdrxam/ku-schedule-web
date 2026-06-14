@@ -7,7 +7,7 @@ const SEMS = ['ภาคต้น', 'ภาคปลาย']
 
 export default function LeftPanel({
   className = '',
-  theme, setTheme, semester, setSemester,
+  theme, setTheme, isAuto, semester, setSemester,
   schedule, totalCr, maxCr, setMaxCr,
   conflicts, onAdd, onSave, onClear, unsaved
 }) {
@@ -56,7 +56,8 @@ export default function LeftPanel({
             <div className="left-header-sub">Schedule Planner</div>
           </div>
           <div className="left-header-right">
-            <select className="theme-select" value={theme} onChange={e => setTheme(e.target.value)}>
+            <select className="theme-select" value={isAuto ? '__auto__' : theme} onChange={e => setTheme(e.target.value)}>
+              <option value="__auto__">อัตโนมัติ</option>
               {THEME_NAMES.map(n => <option key={n}>{n}</option>)}
             </select>
             <select className="sem-select" value={semester} onChange={e => setSemester(e.target.value)}>
