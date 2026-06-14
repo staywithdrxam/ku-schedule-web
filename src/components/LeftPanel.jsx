@@ -172,7 +172,7 @@ export default function LeftPanel({
                       <span style={{ fontSize: 11, color: 'var(--MUTED)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginLeft: 'auto' }}>
                         {c.name}
                       </span>
-                      {isConflict && <span style={{ fontSize: 12, flexShrink: 0 }} title="วิชาตีกัน">⚠️</span>}
+                      {isConflict && <span style={{ fontSize: 10, flexShrink: 0, color: 'var(--DANGER)', fontWeight: 700 }} title="วิชาตีกัน">ตีกัน</span>}
                     </div>
                   </div>
                 )

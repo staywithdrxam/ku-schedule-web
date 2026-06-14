@@ -15,12 +15,12 @@ export default function RightPanel({
     setTooltip({
       x: hit.x + 12, y: hit.y - 10,
       content: [
-        `📚 ${c.name || c.code}`,
+        c.name || c.code,
         c.code && c.name ? `รหัส: ${c.code}` : '',
         `เวลา: ${hit.slot.start} - ${hit.slot.end}`,
         hit.slot.room ? `ห้อง: ${hit.slot.room}` : '',
         c.instructor ? `ผู้สอน: ${c.instructor}` : '',
-        hit.slot.isLab ? '🔬 ปฏิบัติการ' : '',
+        hit.slot.isLab ? 'ปฏิบัติการ (Lab)' : '',
       ].filter(Boolean)
     })
   }

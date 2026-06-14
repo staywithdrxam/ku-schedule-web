@@ -31,7 +31,7 @@ export default function CourseDialog({ initial, onSubmit, onCancel }) {
           <div className="dialog-accent" />
           <div className="dialog-title-row">
             <div>
-              <div className="dialog-title">{initial ? '✏ แก้ไขรายวิชา' : '➕ เพิ่มรายวิชาใหม่'}</div>
+              <div className="dialog-title">{initial ? 'แก้ไขรายวิชา' : 'เพิ่มรายวิชาใหม่'}</div>
               <div className="dialog-sub">กรอกข้อมูลรายวิชาและเวลาเรียน</div>
             </div>
           </div>
@@ -141,7 +141,7 @@ export default function CourseDialog({ initial, onSubmit, onCancel }) {
         <div className="dialog-footer">
           <button className="btn-cancel" onClick={onCancel}>ยกเลิก</button>
           <button className="btn-primary" onClick={handleSubmit}>
-            {initial ? '💾 บันทึกการแก้ไข' : '✅ เพิ่มรายวิชา'}
+            {initial ? 'บันทึกการแก้ไข' : 'เพิ่มรายวิชา'}
           </button>
         </div>
       </div>
