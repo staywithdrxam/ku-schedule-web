@@ -52,7 +52,7 @@ export default function LeftPanel({
         <div className="left-header-accent" />
         <div className="left-header-inner">
           <div className="left-header-text">
-            <div className="left-header-title">📅 ตารางเรียน</div>
+            <div className="left-header-title">ตารางเรียน</div>
             <div className="left-header-sub">Schedule Planner</div>
           </div>
           <div className="left-header-right">
@@ -191,14 +191,14 @@ export default function LeftPanel({
       <div className="left-footer">
         <div className="footer-row">
           <button className="btn btn-save" onClick={onSave}>
-            💾 {unsaved ? 'บันทึก*' : 'บันทึก'}
+            {unsaved ? 'บันทึก *' : 'บันทึก'}
           </button>
           <button className="btn btn-clear" onClick={onClear}>
-            🗑 ล้างทั้งหมด
+            ล้างทั้งหมด
           </button>
         </div>
         <button className="btn btn-export" onClick={() => exportTimetable({ schedule, conflicts, theme, semester })}>
-          🖼 บันทึกรูปภาพตาราง
+          บันทึกรูปภาพตาราง
         </button>
       </div>
 

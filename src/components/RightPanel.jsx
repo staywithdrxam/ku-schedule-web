@@ -73,15 +73,15 @@ export default function RightPanel({
       {/* Course table */}
       <div className="course-table-wrap">
         <div className="table-header">
-          <span className="table-title">📋 รายวิชาที่ลงทะเบียน</span>
+          <span className="table-title">รายวิชาที่ลงทะเบียน</span>
           {selectedIdx !== null && (
             <>
-              <button className="btn-sm btn-edit" onClick={() => onEdit(selectedIdx)}>✏ แก้ไข</button>
+              <button className="btn-sm btn-edit" onClick={() => onEdit(selectedIdx)}>แก้ไข</button>
               <button className="btn-sm btn-delete"
                 onClick={() => {
                   if (window.confirm(`ลบวิชา "${schedule[selectedIdx]?.name}" หรือไม่?`))
                     onDelete(selectedIdx)
-                }}>🗑 ลบ</button>
+                }}>ลบ</button>
             </>
           )}
         </div>
