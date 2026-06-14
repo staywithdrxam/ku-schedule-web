@@ -130,7 +130,7 @@ export default function LeftPanel({
                 padding: '4px 10px', cursor: 'pointer', fontFamily: 'var(--font)',
                 transition: 'background .2s', whiteSpace: 'nowrap'
               }}>
-                {copied ? '✓ คัดลอกแล้ว' : selected.size > 0 ? `คัดลอก ${selected.size} วิชา` : 'คัดลอกทั้งหมด'}
+                {copied ? '✓ คัดลอกแล้ว' : selected.size > 0 ? `คัดลอก ${selected.size} รหัส` : 'คัดลอกรหัสวิชา'}
               </button>
             </div>
 
