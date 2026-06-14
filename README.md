@@ -2,7 +2,7 @@
 
 # Schedule Planner
 
-**จัดตารางเรียนออนไลน์ — สำหรับนิสิต ม.เกษตรศาสตร์ ก**
+**จัดตารางเรียนออนไลน์ — สำหรับนิสิต ม.เก(ษตรศาสตร์)**
 
 [![React](https://img.shields.io/badge/React-18-61dafb?style=flat-square&logo=react)](https://react.dev)
 [![Vite](https://img.shields.io/badge/Vite-5-646cff?style=flat-square&logo=vite)](https://vitejs.dev)
