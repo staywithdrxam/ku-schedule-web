@@ -207,63 +207,62 @@ export async function exportTimetable({ schedule, conflicts, theme, semester }) 
       }
 
       // ── Text ──
-      const tc  = isLight ? '#1a1a2e' : '#0d0d1a'
-      const tx  = x0 + 20  // left margin (after stripe)
-      const avW = bw - 36
+      const tc   = isLight ? '#1a1a2e' : '#0d0d1a'
+      const tx   = x0 + 20
+      const LAB_PW = slot.isLab ? 90 : 0
+      const avW  = bw - 36 - LAB_PW
 
-      // Row 1: course code (left) + [start – end] (right)
-      ctx.font = f(22, 600)
-      ctx.fillStyle = tc; ctx.globalAlpha = 0.7
-      ctx.textAlign = 'left'
-      ctx.fillText(course.code || '', tx, y0 + 28, avW / 2)
-      ctx.textAlign = 'right'
-      ctx.fillText(`[${slot.start} – ${slot.end}]`, x0 + bw - 12, y0 + 28, avW / 2)
-      ctx.globalAlpha = 1
-
-      // Row 2: course name (large bold)
-      if (bh > 44) {
-        ctx.font = f(32, 800)
-        ctx.fillStyle = tc; ctx.textAlign = 'left'
-        const maxName = Math.floor(avW / 19)
-        const name = course.name || course.code || ''
-        const nameShort = name.length > maxName ? name.slice(0, maxName - 1) + '…' : name
-        ctx.fillText(nameShort, tx, y0 + 76, avW)
+      // LAB pill (top-right, drawn first)
+      if (slot.isLab) {
+        const pw = 80, ph = 36, pr = 10
+        const px = x0 + bw - pw - 12
+        const py = y0 + 10
+        ctx.fillStyle = '#7c3aed'; ctx.globalAlpha = 0.9
+        rr(ctx, px, py, pw, ph, pr); ctx.fill()
+        ctx.globalAlpha = 1
+        ctx.font = f(22, 700)
+        ctx.fillStyle = '#fff'; ctx.textAlign = 'center'
+        ctx.fillText('LAB', px + pw / 2, py + 26)
       }
 
-      // Row 3: room (left) + section (right)
-      if (bh > 90) {
+      // Row 1: course code (left only, full avW)
+      ctx.font = f(24, 700)
+      ctx.fillStyle = tc; ctx.globalAlpha = 0.88
+      ctx.textAlign = 'left'
+      ctx.fillText(course.code || '', tx, y0 + 34, avW)
+
+      // Row 2: [time] below code (smaller, dimmer)
+      ctx.font = f(20, 400)
+      ctx.globalAlpha = 0.55
+      ctx.fillText(`[${slot.start} – ${slot.end}]`, tx, y0 + 60, avW)
+      ctx.globalAlpha = 1
+
+      // Row 3: course name (large bold, centered vertically)
+      const fullAvW = bw - 36
+      if (bh > 70) {
+        ctx.font = f(32, 800)
+        ctx.fillStyle = tc; ctx.globalAlpha = 0.92
+        ctx.textAlign = 'center'
+        const maxName = Math.floor(fullAvW / 19)
+        const name = course.name || course.code || ''
+        const nameShort = name.length > maxName ? name.slice(0, maxName - 1) + '…' : name
+        ctx.fillText(nameShort, x0 + bw / 2, y0 + bh / 2 + (bh > 130 ? 10 : 16), fullAvW)
+        ctx.globalAlpha = 1
+      }
+
+      // Row 4: room (left) + section (right)
+      if (bh > 130) {
         ctx.font = f(22, 400)
         ctx.globalAlpha = 0.65
         if (slot.room) {
           ctx.textAlign = 'left'
-          ctx.fillText(`ห้อง: ${slot.room}`, tx, y0 + 118, avW / 2)
+          ctx.fillText(`ห้อง: ${slot.room}`, tx, y0 + bh - 18, fullAvW / 2)
         }
         if (course.section) {
           ctx.textAlign = 'right'
           const stype = slot.isLab ? 'Lab' : 'บรรยาย'
-          ctx.fillText(`หมู่ ${course.section} ${stype}`, x0 + bw - 12, y0 + 118, avW / 2)
+          ctx.fillText(`หมู่ ${course.section} ${stype}`, x0 + bw - 12, y0 + bh - 18, fullAvW / 2)
         }
-        ctx.globalAlpha = 1
-      }
-
-      // LAB badge
-      if (slot.isLab) {
-        ctx.font = f(20, 700)
-        ctx.fillStyle = '#5b21b6'
-        ctx.globalAlpha = 0.85
-        ctx.textAlign = 'right'
-        ctx.fillText('LAB', x0 + bw - 12, y0 + 28 - 14 + 14, 80)
-        // small colored pill
-        const lw2 = 60, lh2 = 26
-        ctx.fillStyle = '#5b21b6'
-        ctx.globalAlpha = 0.15
-        rr(ctx, x0 + bw - lw2 - 12, y0 + 6, lw2, lh2, 8)
-        ctx.fill()
-        ctx.globalAlpha = 0.85
-        ctx.fillStyle = '#5b21b6'
-        ctx.font = f(18, 700)
-        ctx.textAlign = 'center'
-        ctx.fillText('LAB', x0 + bw - lw2/2 - 12, y0 + 23)
         ctx.globalAlpha = 1
       }
     })
