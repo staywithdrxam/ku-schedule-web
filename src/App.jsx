@@ -106,13 +106,16 @@ export default function App() {
   }, [])
 
   const moveSlot = useCallback((ci, slotIdx, newDay, newStart, newEnd) => {
-    setSchedule(prev => prev.map((c, i) => {
-      if (i !== ci) return c
-      const slots = (c.slots || []).map((s, si) =>
-        si === slotIdx ? { ...s, day: newDay, start: newStart, end: newEnd } : s
-      )
-      return { ...c, slots }
-    }))
+    setSchedule(prev => {
+      setUndoStack(stack => [...stack.slice(-19), prev])
+      return prev.map((c, i) => {
+        if (i !== ci) return c
+        const slots = (c.slots || []).map((s, si) =>
+          si === slotIdx ? { ...s, day: newDay, start: newStart, end: newEnd } : s
+        )
+        return { ...c, slots }
+      })
+    })
     setUnsaved(true)
   }, [])
 
