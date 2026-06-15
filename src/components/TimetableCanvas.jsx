@@ -224,18 +224,15 @@ export default function TimetableCanvas({
           roundRect(ctx, x0, y0, bw, bh, 6); ctx.stroke()
         }
 
-        // Selection glow border + hint text
+        // Selection overlay + hint text
         if (selectedIdx === ci) {
-          ctx.globalAlpha = 0.12; ctx.fillStyle = '#6c63ff'
+          ctx.globalAlpha = 0.45; ctx.fillStyle = '#6c63ff'
           roundRect(ctx, x0, y0, bw, bh, 6); ctx.fill()
-          ctx.globalAlpha = 0.9; ctx.strokeStyle = '#6c63ff'; ctx.lineWidth = 2.5
-          ctx.setLineDash([])
+          ctx.globalAlpha = 1; ctx.strokeStyle = '#5048e5'; ctx.lineWidth = 2
           roundRect(ctx, x0, y0, bw, bh, 6); ctx.stroke()
-          ctx.globalAlpha = 1
-          ctx.fillStyle = '#6c63ff'
-          ctx.font = `600 9px 'Noto Sans Thai', sans-serif`
-          ctx.textAlign = 'center'; ctx.globalAlpha = 0.88
-          ctx.fillText('กดอีกครั้งเพื่อทำการแก้ไข', x0 + bw / 2, y0 + bh - 5, bw - 8)
+          ctx.fillStyle = '#fff'; ctx.font = `700 10px 'Noto Sans Thai', sans-serif`
+          ctx.textAlign = 'center'; ctx.globalAlpha = 0.95
+          ctx.fillText('กดอีกครั้งเพื่อทำการแก้ไข', x0 + bw / 2, y0 + bh / 2 + 4, bw - 8)
           ctx.globalAlpha = 1
         }
 
