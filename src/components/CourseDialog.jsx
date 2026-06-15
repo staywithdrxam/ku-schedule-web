@@ -17,11 +17,17 @@ export default function CourseDialog({ initial, prefillSlot, onSubmit, onCancel 
     return [DEFAULT_SLOT()]
   })
 
+  const canSubmit = name.trim() || code.trim()
+
   useEffect(() => {
-    const handler = (e) => { if (e.key === 'Escape') onCancel() }
+    const handler = (e) => {
+      if (e.key === 'Escape') onCancel()
+      if (e.key === 'Enter' && !e.shiftKey && canSubmit &&
+          e.target.tagName !== 'SELECT' && e.target.type !== 'checkbox') handleSubmit()
+    }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [onCancel])
+  }, [onCancel, canSubmit, name, code, section, credits, instructor, color, slots])
 
   function addSlot() { setSlots(prev => [...prev, DEFAULT_SLOT()]) }
   function removeSlot(i) { setSlots(prev => prev.filter((_, idx) => idx !== i)) }
@@ -58,7 +64,8 @@ export default function CourseDialog({ initial, prefillSlot, onSubmit, onCancel 
             <div className="meta-row">
               <div className="form-group">
                 <label className="form-label">รหัสวิชา</label>
-                <input className="form-input" placeholder="เช่น 01420117" value={code} onChange={e => setCode(e.target.value)} />
+                <input className="form-input" placeholder="เช่น 01420117" value={code}
+                  onChange={e => setCode(e.target.value.replace(/[^0-9\-]/g, ''))} />
               </div>
               <div className="form-group" style={{ maxWidth: 80 }}>
                 <label className="form-label">หมู่เรียน</label>
