@@ -89,19 +89,24 @@ body {
 .left-header-right { display: flex; gap: 6px; align-items: center; }
 
 select.theme-select, select.sem-select {
-  font-family: var(--font); font-size: 11px; font-weight: 600;
-  background: transparent; color: var(--MUTED);
-  border: 1px solid var(--BORDER); border-radius: 8px;
-  padding: 4px 6px 4px 8px;
+  font-family: var(--font); font-size: 12px; font-weight: 600;
+  background: var(--BG); color: var(--TEXT);
+  border: 1.5px solid var(--BORDER); border-radius: 20px;
+  padding: 6px 28px 6px 12px;
   cursor: pointer; outline: none;
-  transition: border-color .15s, color .15s;
+  transition: border-color .15s, box-shadow .15s, background .15s;
   -webkit-appearance: none; appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 6px center;
-  padding-right: 22px;
+  background-repeat: no-repeat; background-position: right 10px center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
 select.theme-select:hover, select.sem-select:hover {
-  border-color: var(--ACCENT); color: var(--TEXT);
+  border-color: var(--ACCENT);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ACCENT) 15%, transparent);
+}
+select.theme-select:focus, select.sem-select:focus {
+  border-color: var(--ACCENT);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ACCENT) 15%, transparent);
 }
 select option { background: var(--CARD); }
 
