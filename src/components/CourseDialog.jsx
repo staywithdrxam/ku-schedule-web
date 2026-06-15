@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { DAYS, DAY_FULL, TIMES, COLORS } from '../constants'
 import ColorWheel from './ColorWheel'
 
@@ -12,6 +12,7 @@ export default function CourseDialog({ initial, prefillSlot, onSubmit, onCancel 
   const [instructor, setInstructor] = useState(initial?.instructor || '')
   const [color, setColor] = useState(initial?.color || COLORS[0])
   const [errorMsg, setErrorMsg] = useState('')
+  const errorTimer = useRef(null)
   const [slots, setSlots] = useState(() => {
     if (initial?.slots?.length) return initial.slots
     if (prefillSlot) return [{ day: prefillSlot.day, start: prefillSlot.start, end: prefillSlot.end, room: '', isLab: false }]
@@ -37,8 +38,9 @@ export default function CourseDialog({ initial, prefillSlot, onSubmit, onCancel 
   }
 
   function showError(msg) {
+    clearTimeout(errorTimer.current)
     setErrorMsg(msg)
-    setTimeout(() => setErrorMsg(''), 3000)
+    errorTimer.current = setTimeout(() => setErrorMsg(''), 2500)
   }
 
   function handleSubmit() {
