@@ -13,6 +13,7 @@ export default function RightPanel({
   const totalCr = schedule.reduce((s, c) => s + (Number(c.credits) || 0), 0)
   const totalSlots = schedule.reduce((s, c) => s + (c.slots || []).length, 0)
   const [pendingDelete, setPendingDelete] = useState(null)
+  const [tableCollapsed, setTableCollapsed] = useState(false)
 
   function handleSlotHover(hit) {
     if (!hit) { setTooltip(null); return }
@@ -105,8 +106,17 @@ export default function RightPanel({
       {/* Course table */}
       <div className="course-table-wrap">
         <div className="table-header">
+          <button onClick={() => setTableCollapsed(c => !c)} style={{
+            background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+            color: 'var(--MUTED)', display: 'flex', alignItems: 'center', flexShrink: 0
+          }} title={tableCollapsed ? 'ขยาย' : 'ย่อ'}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+              style={{ transition: 'transform .2s', transform: tableCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}>
+              <path d="M6 9l6 6 6-6"/>
+            </svg>
+          </button>
           <span className="table-title">รายวิชาที่ลงทะเบียน</span>
-          {selectedIdx !== null && (
+          {!tableCollapsed && selectedIdx !== null && (
             <>
               <button className="btn-sm btn-edit" onClick={() => onEdit(selectedIdx)}>แก้ไข</button>
               <button className="btn-sm btn-delete"
@@ -117,7 +127,7 @@ export default function RightPanel({
             </>
           )}
         </div>
-        <div style={{ maxHeight: 150, overflowY: 'auto' }}>
+        <div style={{ maxHeight: 150, overflowY: 'auto', display: tableCollapsed ? 'none' : undefined }}>
           <table>
             <thead>
               <tr>
