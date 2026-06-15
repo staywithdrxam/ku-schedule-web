@@ -508,23 +508,25 @@ tbody td { padding: 7px 10px; color: var(--TEXT); }
     height: calc(100svh - 94px - env(safe-area-inset-bottom));
     border-radius: 0;
     border: none;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
+    overflow-y: auto;
+    display: block;
   }
   .left-panel .left-header {
-    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--CARD);
   }
   .left-panel .left-body {
-    flex: 1;
-    overflow-y: auto;
-    min-height: 0;
+    flex: unset;
+    overflow-y: visible;
+    min-height: unset;
   }
   .left-panel .left-footer {
-    flex-shrink: 0;
+    flex-shrink: unset;
   }
   .left-panel .credit-line {
-    flex-shrink: 0;
+    flex-shrink: unset;
   }
 
   .right-panel {
