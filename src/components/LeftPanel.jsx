@@ -15,6 +15,7 @@ export default function LeftPanel({
   const maxCrRef = useRef()
   const [copied, setCopied] = useState(false)
   const [selected, setSelected] = useState(new Set())
+  const [listCollapsed, setListCollapsed] = useState(false)
 
   const prog = maxCr > 0 ? Math.min(totalCr / maxCr, 1) : 0
   const barColor = totalCr > maxCr ? 'var(--DANGER)'
@@ -120,28 +121,39 @@ export default function LeftPanel({
         {schedule.length > 0 ? (
           <div className="card" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', alignItems: 'center', padding: '10px 12px 6px', gap: 8 }}>
+              <button onClick={() => setListCollapsed(c => !c)} style={{
+                background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                color: 'var(--MUTED)', display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0
+              }} title={listCollapsed ? 'ขยาย' : 'ย่อ'}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                  style={{ transition: 'transform .2s', transform: listCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}>
+                  <path d="M6 9l6 6 6-6"/>
+                </svg>
+              </button>
               <span className="card-label" style={{ padding: 0, flex: 1 }}>
                 รายวิชา {selected.size > 0 && <span style={{ color: 'var(--ACCENT)', fontSize: 10 }}>({selected.size} เลือกอยู่)</span>}
               </span>
-              {selected.size > 0 && (
+              {!listCollapsed && selected.size > 0 && (
                 <button onClick={() => setSelected(new Set())} style={{
                   fontSize: 10, background: 'none', color: 'var(--MUTED)',
                   border: '1px solid var(--BORDER)', borderRadius: 4,
                   padding: '3px 7px', cursor: 'pointer', fontFamily: 'var(--font)'
                 }}>ยกเลิก</button>
               )}
-              <button onClick={copySelected} style={{
-                fontSize: 11, fontWeight: 700,
-                background: copied ? 'var(--SUCCESS)' : 'var(--ACCENT)',
-                color: 'var(--BG)', border: 'none', borderRadius: 5,
-                padding: '4px 10px', cursor: 'pointer', fontFamily: 'var(--font)',
-                transition: 'background .2s', whiteSpace: 'nowrap'
-              }}>
-                {copied ? '✓ คัดลอกแล้ว' : selected.size > 0 ? `คัดลอก ${selected.size} รหัส` : 'คัดลอกรหัสวิชา'}
-              </button>
+              {!listCollapsed && (
+                <button onClick={copySelected} style={{
+                  fontSize: 11, fontWeight: 700,
+                  background: copied ? 'var(--SUCCESS)' : 'var(--ACCENT)',
+                  color: 'var(--BG)', border: 'none', borderRadius: 5,
+                  padding: '4px 10px', cursor: 'pointer', fontFamily: 'var(--font)',
+                  transition: 'background .2s', whiteSpace: 'nowrap'
+                }}>
+                  {copied ? '✓ คัดลอกแล้ว' : selected.size > 0 ? `คัดลอก ${selected.size} รหัส` : 'คัดลอกรหัสวิชา'}
+                </button>
+              )}
             </div>
 
-            <div style={{ flex: 1, overflowY: 'auto', padding: '0 10px 10px' }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '0 10px 10px', display: listCollapsed ? 'none' : undefined }}>
               {schedule.map((c, i) => {
                 const isSel = selected.has(i)
                 const isConflict = conflicts.has(i)
