@@ -168,7 +168,9 @@ export default function App() {
       if (dialogOpenRef.current) return
       const mod = e.ctrlKey || e.metaKey
 
-      if (mod && e.key === 'z') {
+      if (mod && (e.key === 'z' || e.key === 'Z')) {
+        const tag = document.activeElement?.tagName
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return
         setUndoStack(stack => {
           if (!stack.length) return stack
           const prev = stack[stack.length - 1]
@@ -181,7 +183,7 @@ export default function App() {
         e.preventDefault()
       }
 
-      if (mod && e.key === 'c' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+      if (mod && (e.key === 'c' || e.key === 'C')) {
         const si = selectedIdxRef.current
         const cur = scheduleRef.current
         if (si !== null && cur[si]) {
@@ -190,13 +192,15 @@ export default function App() {
           copiedCourseRef.current = { ...course }
           setCopyToast(`คัดลอก "${course.name || course.code}" แล้ว`)
           setTimeout(() => setCopyToast(''), 2000)
+          e.preventDefault()
         }
-        e.preventDefault()
       }
 
-      if (mod && e.key === 'v' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+      if (mod && (e.key === 'v' || e.key === 'V')) {
+        const tag = document.activeElement?.tagName
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return
         const copied = copiedCourseRef.current
-        if (!copied) { e.preventDefault(); return }
+        if (!copied) return
         pasteIdxRef.current = -1
         setSchedule(prev => {
           setUndoStack(stack => [...stack.slice(-19), prev])
