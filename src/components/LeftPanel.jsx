@@ -204,7 +204,7 @@ export default function LeftPanel({
             ล้างทั้งหมด
           </button>
         </div>
-        <button className="btn btn-export" onClick={() => exportTimetable({ schedule, conflicts, theme, semester })}>
+        <button className="btn btn-export" onClick={() => exportTimetable({ schedule, conflicts, theme, semester }).catch(() => {})}>
           บันทึกรูปภาพตาราง
         </button>
       </div>

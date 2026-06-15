@@ -86,13 +86,22 @@ body {
 .left-header-text { flex: 1; }
 .left-header-title { font-size: 14px; font-weight: 700; color: var(--TEXT); }
 .left-header-sub { font-size: 11px; color: var(--MUTED); margin-top: 2px; }
-.left-header-right { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+.left-header-right { display: flex; gap: 6px; align-items: center; }
 
 select.theme-select, select.sem-select {
-  font-family: var(--font); font-size: 11px;
-  background: var(--BORDER); color: var(--TEXT);
-  border: none; border-radius: 5px; padding: 3px 6px;
+  font-family: var(--font); font-size: 11px; font-weight: 600;
+  background: transparent; color: var(--MUTED);
+  border: 1px solid var(--BORDER); border-radius: 8px;
+  padding: 4px 6px 4px 8px;
   cursor: pointer; outline: none;
+  transition: border-color .15s, color .15s;
+  -webkit-appearance: none; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 6px center;
+  padding-right: 22px;
+}
+select.theme-select:hover, select.sem-select:hover {
+  border-color: var(--ACCENT); color: var(--TEXT);
 }
 select option { background: var(--CARD); }
 
