@@ -224,18 +224,23 @@ export default function TimetableCanvas({
           roundRect(ctx, x0, y0, bw, bh, 6); ctx.stroke()
         }
 
-        // Selection overlay + hint text
+        // Selection overlay + centered badge
         if (selectedIdx === ci) {
-          ctx.globalAlpha = 0.18; ctx.fillStyle = '#6c63ff'
+          ctx.globalAlpha = 0.15; ctx.fillStyle = '#6c63ff'
           roundRect(ctx, x0, y0, bw, bh, 6); ctx.fill()
           ctx.globalAlpha = 1; ctx.strokeStyle = '#5048e5'; ctx.lineWidth = 2
           roundRect(ctx, x0, y0, bw, bh, 6); ctx.stroke()
-          ctx.font = `700 10px 'Noto Sans Thai', sans-serif`
-          ctx.textAlign = 'center'
-          ctx.shadowColor = 'rgba(50,40,180,0.85)'; ctx.shadowBlur = 6
-          ctx.fillStyle = '#fff'; ctx.globalAlpha = 1
-          ctx.fillText('กดอีกครั้งเพื่อทำการแก้ไข', x0 + bw / 2, y0 + bh - 5, bw - 8)
-          ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0
+
+          const hint = 'กดอีกครั้งเพื่อแก้ไข'
+          ctx.font = `700 11px 'Noto Sans Thai', sans-serif`
+          const badgeW = Math.min(ctx.measureText(hint).width + 22, bw - 10)
+          const badgeH = 22
+          const bx = x0 + bw / 2 - badgeW / 2
+          const by = y0 + bh / 2 - badgeH / 2
+          ctx.globalAlpha = 0.92; ctx.fillStyle = '#3730a3'
+          roundRect(ctx, bx, by, badgeW, badgeH, 8); ctx.fill()
+          ctx.globalAlpha = 1; ctx.fillStyle = '#fff'; ctx.textAlign = 'center'
+          ctx.fillText(hint, x0 + bw / 2, by + badgeH / 2 + 4, badgeW - 10)
         }
 
         const tc      = isLight ? '#1a1a2e' : '#0d0d1a'
