@@ -546,7 +546,7 @@ tbody td { padding: 7px 10px; color: var(--TEXT); }
   /* Canvas: fixed tall height on mobile for vertical + horizontal scroll */
   .canvas-wrap { margin: 6px; }
   .canvas-scroll { overflow: auto; -webkit-overflow-scrolling: touch; }
-  .canvas-scroll canvas { min-width: 900px; height: 760px !important; min-height: unset; }
+  .canvas-scroll canvas { min-width: 1600px; height: 860px !important; min-height: unset; }
 
   /* Hide course table on mobile (accessible via วิชา tab) */
   .course-table-wrap { display: none !important; }
