@@ -622,10 +622,15 @@ tbody td { padding: 7px 10px; color: var(--TEXT); }
   /* Dialog full-height on mobile */
   .dialog-overlay { align-items: flex-end; padding: 0; }
   .dialog {
-    border-radius: 16px 16px 0 0;
-    max-height: 92vh;
+    border-radius: 20px 20px 0 0;
+    max-height: 92dvh;
+    max-height: 92svh;
+    height: 92dvh;
+    height: 92svh;
     max-width: 100%;
   }
+  .dialog-body { flex: 1; min-height: 0; }
+  .dialog-footer { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
 
   /* Tooltip off on mobile */
   .tooltip { display: none; }
