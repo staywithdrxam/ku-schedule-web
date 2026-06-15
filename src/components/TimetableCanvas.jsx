@@ -222,31 +222,48 @@ export default function TimetableCanvas({ schedule, conflicts, theme, pendingDel
         }
 
         // ── Text inside block ────────────────────────────
-        const tc    = isLight ? '#1a1a2e' : '#0d0d1a'
-        const tx    = x0 + 8
-        const avail = bw - 16
-
+        const tc      = isLight ? '#1a1a2e' : '#0d0d1a'
+        const tx      = x0 + 8
+        const avail   = bw - 16
+        const LAB_W   = slot.isLab ? 30 : 0
         const hasBottom = bh > 46 && (slot.room || course.section)
-        const topY      = y0 + 13
+        const topY    = y0 + 13
 
-        // Row 1: code (left) + [time] (right)
+        // LAB pill (top-right corner, drawn first so text renders on top)
+        if (slot.isLab) {
+          const pw = 28, ph = 14, pr = 5
+          const px = x0 + bw - pw - 5
+          const py = y0 + 4
+          ctx.fillStyle   = '#7c3aed'
+          ctx.globalAlpha = 0.9
+          ctx.beginPath()
+          ctx.roundRect(px, py, pw, ph, pr)
+          ctx.fill()
+          ctx.globalAlpha = 1
+          ctx.font        = `bold 9px sans-serif`
+          ctx.fillStyle   = '#fff'
+          ctx.textAlign   = 'center'
+          ctx.fillText('LAB', px + pw / 2, py + 10)
+        }
+
+        // Row 1: code (left) + [time] (right, avoid LAB pill)
         ctx.fillStyle   = tc
         ctx.globalAlpha = 0.85
         ctx.font        = `700 11px 'Noto Sans Thai', sans-serif`
         ctx.textAlign   = 'left'
-        ctx.fillText(course.code || '', tx, topY, avail * 0.55)
+        ctx.fillText(course.code || '', tx, topY, avail * 0.5)
         ctx.font        = `500 10px 'Noto Sans Thai', sans-serif`
         ctx.globalAlpha = 0.55
         ctx.textAlign   = 'right'
-        ctx.fillText(`[${slot.start}–${slot.end}]`, x0 + bw - 6, topY, avail * 0.55)
+        ctx.fillText(`[${slot.start}–${slot.end}]`, x0 + bw - LAB_W - 8, topY, avail * 0.45)
         ctx.globalAlpha = 1
 
         // Row 2: course name — vertically centered in remaining space
         if (bh > 20 && course.name) {
-          const midTop    = topY + 4
-          const midBot    = hasBottom ? y0 + bh - 16 : y0 + bh - 4
-          const nameY     = (midTop + midBot) / 2 + 5
-          const fontSize  = bh > 50 ? 13 : bh > 32 ? 11 : 10
+          const midTop   = topY + 4
+          const midBot   = hasBottom ? y0 + bh - 16 : y0 + bh - 4
+          const nameY    = (midTop + midBot) / 2 + 5
+          const fontSize = bh > 50 ? 13 : bh > 32 ? 11 : 10
           ctx.font        = `800 ${fontSize}px 'Noto Sans Thai', sans-serif`
           ctx.fillStyle   = tc
           ctx.globalAlpha = 0.92
@@ -274,14 +291,6 @@ export default function TimetableCanvas({ schedule, conflicts, theme, pendingDel
           ctx.globalAlpha = 1
         }
 
-        // LAB badge when no bottom row
-        if (slot.isLab && !hasBottom) {
-          ctx.font        = `bold 8px sans-serif`
-          ctx.fillStyle   = '#5b21b6'
-          ctx.globalAlpha = 0.8
-          ctx.textAlign   = 'right'
-          ctx.fillText('LAB', x0 + bw - 5, topY)
-        }
         ctx.globalAlpha = 1
         ctx.textAlign   = 'left'
       })
