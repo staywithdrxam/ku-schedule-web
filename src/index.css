@@ -508,18 +508,23 @@ tbody td { padding: 7px 10px; color: var(--TEXT); }
     height: calc(100svh - 94px - env(safe-area-inset-bottom));
     border-radius: 0;
     border: none;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
-  /* header sticky so it stays visible while body scrolls */
   .left-panel .left-header {
-    position: sticky; top: 0; z-index: 10;
+    flex-shrink: 0;
   }
-  /* body no longer scrolls — whole panel scrolls */
   .left-panel .left-body {
-    overflow-y: visible;
-    flex: none;
-    height: auto;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+  }
+  .left-panel .left-footer {
+    flex-shrink: 0;
+  }
+  .left-panel .credit-line {
+    flex-shrink: 0;
   }
 
   .right-panel {
