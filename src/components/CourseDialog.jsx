@@ -48,7 +48,8 @@ export default function CourseDialog({ initial, prefillSlot, onSubmit, onCancel 
 
   return (
     <div className="dialog-overlay" onClick={e => e.target === e.currentTarget && onCancel()}>
-      <div className="dialog">
+      <div className="dialog" style={{ position: 'relative' }}>
+        <div className={`dialog-toast${errorMsg ? ' show' : ''}`}>⚠ {errorMsg}</div>
         <div className="dialog-header">
           <div className="dialog-accent" />
           <div className="dialog-title-row">
@@ -58,12 +59,6 @@ export default function CourseDialog({ initial, prefillSlot, onSubmit, onCancel 
             </div>
           </div>
         </div>
-
-        {errorMsg && (
-          <div className="dialog-error-banner">
-            <span>⚠</span> {errorMsg}
-          </div>
-        )}
 
         <div className="dialog-body">
           {/* Name & Code */}
