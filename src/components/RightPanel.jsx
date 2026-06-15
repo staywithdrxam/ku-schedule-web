@@ -8,7 +8,7 @@ const toTimeStr = (m) =>
 export default function RightPanel({
   className = '',
   schedule, conflicts, selectedIdx, setSelectedIdx,
-  onEdit, onDelete, onAddAt, theme, semester, tooltip, setTooltip
+  onEdit, onDelete, onAddAt, onMoveSlot, theme, semester, tooltip, setTooltip
 }) {
   const totalCr = schedule.reduce((s, c) => s + (Number(c.credits) || 0), 0)
   const totalSlots = schedule.reduce((s, c) => s + (c.slots || []).length, 0)
@@ -99,6 +99,7 @@ export default function RightPanel({
             onSlotHover={handleSlotHover}
             onSlotClick={handleSlotClick}
             onEmptyClick={handleEmptyClick}
+            onSlotMove={onMoveSlot}
           />
         </div>
       </div>

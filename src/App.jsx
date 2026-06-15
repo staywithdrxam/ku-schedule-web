@@ -52,6 +52,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('timetable')
   const [undoStack, setUndoStack] = useState([])
   const [undoToast, setUndoToast] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   const setTheme = useCallback((val) => {
     if (val === '__auto__') {
@@ -94,12 +95,25 @@ export default function App() {
     setUnsaved(false)
   }, [schedule])
 
-  const clearAll = useCallback(() => {
-    if (!window.confirm('ล้างตารางเรียนทั้งหมดหรือไม่?')) return
+  const clearAll = useCallback(() => { setConfirmOpen(true) }, [])
+
+  const confirmClearAll = useCallback(() => {
     setSchedule([])
     setSelectedIdx(null)
     setUnsaved(false)
     localStorage.setItem(STORAGE_KEY, '[]')
+    setConfirmOpen(false)
+  }, [])
+
+  const moveSlot = useCallback((ci, slotIdx, newDay, newStart, newEnd) => {
+    setSchedule(prev => prev.map((c, i) => {
+      if (i !== ci) return c
+      const slots = (c.slots || []).map((s, si) =>
+        si === slotIdx ? { ...s, day: newDay, start: newStart, end: newEnd } : s
+      )
+      return { ...c, slots }
+    }))
+    setUnsaved(true)
   }, [])
 
   const openAdd = () => { setEditIdx(null); setPrefillSlot(null); setDialogOpen(true) }
@@ -174,7 +188,7 @@ export default function App() {
           className={activeTab !== 'timetable' ? 'panel-hidden-mobile' : ''}
           schedule={schedule} conflicts={conflicts}
           selectedIdx={selectedIdx} setSelectedIdx={setSelectedIdx}
-          onEdit={openEdit} onDelete={deleteCourse} onAddAt={openAddAt}
+          onEdit={openEdit} onDelete={deleteCourse} onAddAt={openAddAt} onMoveSlot={moveSlot}
           tooltip={tooltip} setTooltip={setTooltip}
           theme={theme} semester={semester}
         />
@@ -256,6 +270,20 @@ export default function App() {
           whiteSpace: 'nowrap'
         }}>
           ย้อนกลับแล้ว (Ctrl+Z)
+        </div>
+      )}
+
+      {confirmOpen && (
+        <div className="dialog-overlay" onClick={e => e.target === e.currentTarget && setConfirmOpen(false)}>
+          <div className="confirm-modal">
+            <div className="confirm-icon">🗑️</div>
+            <div className="confirm-title">ล้างตารางเรียน</div>
+            <div className="confirm-desc">วิชาทั้งหมดจะถูกลบออก ไม่สามารถย้อนกลับได้</div>
+            <div className="confirm-actions">
+              <button className="btn-cancel confirm-cancel" onClick={() => setConfirmOpen(false)}>ยกเลิก</button>
+              <button className="btn-danger-confirm" onClick={confirmClearAll}>ล้างทั้งหมด</button>
+            </div>
+          </div>
         </div>
       )}
 
