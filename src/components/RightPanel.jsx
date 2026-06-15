@@ -119,13 +119,6 @@ export default function RightPanel({
             </svg>
           </button>
           <span className="table-title">รายวิชาที่ลงทะเบียน</span>
-          {!tableCollapsed && selectedIdx !== null && (
-            <>
-              <button className="btn-sm btn-edit" onClick={() => onEdit(selectedIdx)}>แก้ไข</button>
-              <button className="btn-sm btn-delete"
-                onClick={() => setDeleteConfirmIdx(selectedIdx)}>ลบ</button>
-            </>
-          )}
         </div>
         <div style={{ maxHeight: 150, overflowY: 'auto', display: tableCollapsed ? 'none' : undefined }}>
           <table>

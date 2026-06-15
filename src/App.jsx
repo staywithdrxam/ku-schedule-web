@@ -56,6 +56,10 @@ export default function App() {
   const [copiedCourse, setCopiedCourse] = useState(null)
   const [copyToast, setCopyToast] = useState('')
   const pasteIdxRef = useRef(-1)
+  const scheduleRef = useRef(schedule)
+  const copiedCourseRef = useRef(null)
+  useEffect(() => { scheduleRef.current = schedule }, [schedule])
+  useEffect(() => { copiedCourseRef.current = copiedCourse }, [copiedCourse])
 
   const setTheme = useCallback((val) => {
     if (val === '__auto__') {
@@ -160,38 +164,36 @@ export default function App() {
       }
 
       if (mod && e.key === 'c' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-        setSchedule(cur => {
-          if (selectedIdx !== null && cur[selectedIdx]) {
-            setCopiedCourse({ ...cur[selectedIdx] })
-            setCopyToast(`คัดลอก "${cur[selectedIdx].name || cur[selectedIdx].code}" แล้ว`)
-            setTimeout(() => setCopyToast(''), 2000)
-          }
-          return cur
-        })
+        const cur = scheduleRef.current
+        if (selectedIdx !== null && cur[selectedIdx]) {
+          const course = cur[selectedIdx]
+          setCopiedCourse({ ...course })
+          copiedCourseRef.current = { ...course }
+          setCopyToast(`คัดลอก "${course.name || course.code}" แล้ว`)
+          setTimeout(() => setCopyToast(''), 2000)
+        }
         e.preventDefault()
       }
 
       if (mod && e.key === 'v' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-        setCopiedCourse(copied => {
-          if (!copied) return copied
-          pasteIdxRef.current = -1
-          setSchedule(prev => {
-            setUndoStack(stack => [...stack.slice(-19), prev])
-            pasteIdxRef.current = prev.length
-            const pasted = { ...copied, name: copied.name ? `${copied.name} (สำเนา)` : '' }
-            return assignColors([...prev, pasted])
-          })
-          setUnsaved(true)
-          setTimeout(() => {
-            if (pasteIdxRef.current >= 0) {
-              setEditIdx(pasteIdxRef.current)
-              setDialogOpen(true)
-            }
-          }, 0)
-          setCopyToast('วางวิชาแล้ว — แก้ไขเวลาได้เลย')
-          setTimeout(() => setCopyToast(''), 2500)
-          return copied
+        const copied = copiedCourseRef.current
+        if (!copied) { e.preventDefault(); return }
+        pasteIdxRef.current = -1
+        setSchedule(prev => {
+          setUndoStack(stack => [...stack.slice(-19), prev])
+          pasteIdxRef.current = prev.length
+          const pasted = { ...copied, name: copied.name ? `${copied.name} (สำเนา)` : '' }
+          return assignColors([...prev, pasted])
         })
+        setUnsaved(true)
+        setTimeout(() => {
+          if (pasteIdxRef.current >= 0) {
+            setEditIdx(pasteIdxRef.current)
+            setDialogOpen(true)
+          }
+        }, 0)
+        setCopyToast('วางวิชาแล้ว — แก้ไขเวลาได้เลย')
+        setTimeout(() => setCopyToast(''), 2500)
         e.preventDefault()
       }
     }
