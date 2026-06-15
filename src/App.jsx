@@ -168,6 +168,23 @@ export default function App() {
       if (dialogOpenRef.current) return
       const mod = e.ctrlKey || e.metaKey
 
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        const tag = document.activeElement?.tagName
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return
+        const si = selectedIdxRef.current
+        if (si !== null && scheduleRef.current[si]) {
+          setSchedule(prev => {
+            setUndoStack(stack => [...stack.slice(-19), prev])
+            const next = prev.filter((_, i) => i !== si)
+            setUnsaved(true)
+            return assignColors(next)
+          })
+          setSelectedIdx(null)
+          selectedIdxRef.current = null
+          e.preventDefault()
+        }
+      }
+
       if (mod && (e.key === 'z' || e.key === 'Z')) {
         const tag = document.activeElement?.tagName
         if (tag === 'INPUT' || tag === 'TEXTAREA') return
