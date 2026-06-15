@@ -174,7 +174,7 @@ export default function App() {
           if (!copied) return copied
           setSchedule(prev => {
             setUndoStack(stack => [...stack.slice(-19), prev])
-            const pasted = { ...copied, name: copied.name ? `${copied.name} (สำเนา)` : '' }
+            const pasted = { ...copied, name: copied.name ? `${copied.name} (สำเนา)` : '', slots: [] }
             return assignColors([...prev, pasted])
           })
           setUnsaved(true)
