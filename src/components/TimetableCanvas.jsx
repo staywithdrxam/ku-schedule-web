@@ -45,7 +45,8 @@ export default function TimetableCanvas({
   const rafRef     = useRef(null)
   const dragRef    = useRef(null)
   // dragRef = { active, ci, slotIdx, duration, offsetM, ghost:{di,startM}|null, moved, startX, startY }
-  const lastClickRef = useRef({ ci: -1, time: 0 })
+  const lastClickRef    = useRef({ ci: -1, time: 0 })
+  const scrollXRef      = useRef(0)
 
   // Keep a stable ref to handlers so the non-passive touchmove listener can always call the latest version
   const touchMoveHandlerRef = useRef()
@@ -69,6 +70,8 @@ export default function TimetableCanvas({
     const ROW_H   = (H - HEAD_H) / DAYS.length
     const TIME_W  = W - LABEL_W
     const drag    = dragRef.current
+    const scrollX = canvasRef.current?.parentElement?.scrollLeft || 0
+    scrollXRef.current = scrollX
 
     // Background
     ctx.fillStyle = t.CANVAS_BG || t.BG
@@ -88,7 +91,7 @@ export default function TimetableCanvas({
       ctx.globalAlpha = 0.18
       ctx.fillRect(LABEL_W, hy0, TIME_W, ROW_H)
       ctx.globalAlpha = 0.25
-      ctx.fillRect(0, hy0, LABEL_W, ROW_H)
+      ctx.fillRect(scrollX, hy0, LABEL_W, ROW_H)
       ctx.globalAlpha = 1
       if (hover.minM >= START_M && hover.minM <= END_M) {
         const hx = LABEL_W + ((hover.minM - START_M) / TOTAL_M) * TIME_W
@@ -137,37 +140,37 @@ export default function TimetableCanvas({
       ctx.globalAlpha = 1
     }
 
-    // Day label column
+    // Day label column (sticky — redrawn at scrollX so it stays visible)
     DAYS.forEach((d, di) => {
       const y0 = HEAD_H + di * ROW_H
       const cy = y0 + ROW_H / 2
       ctx.fillStyle = DAY_BG[di]
-      ctx.fillRect(0, y0, LABEL_W, ROW_H)
+      ctx.fillRect(scrollX, y0, LABEL_W, ROW_H)
       ctx.fillStyle   = DAY_HDR[di]
       ctx.globalAlpha = 0.9
-      ctx.fillRect(0, y0 + 5, 3, ROW_H - 10)
+      ctx.fillRect(scrollX, y0 + 5, 3, ROW_H - 10)
       ctx.globalAlpha = 1
       ctx.fillStyle    = DAY_HDR[di]
       ctx.font         = `700 11px 'Noto Sans Thai', sans-serif`
       ctx.textAlign    = 'center'
       ctx.textBaseline = 'middle'
-      ctx.fillText(DAY_FULL[d] || d, LABEL_W / 2, cy)
+      ctx.fillText(DAY_FULL[d] || d, scrollX + LABEL_W / 2, cy)
       ctx.textBaseline = 'alphabetic'
     })
 
-    // Header corner
+    // Header corner (sticky)
     ctx.fillStyle = t.CANVAS_BG || t.BG
-    ctx.fillRect(0, 0, LABEL_W, HEAD_H)
+    ctx.fillRect(scrollX, 0, LABEL_W, HEAD_H)
     ctx.fillStyle = t.MUTED
     ctx.font      = `600 10px 'Noto Sans Thai', sans-serif`
     ctx.textAlign = 'center'
-    ctx.fillText('วัน',  LABEL_W / 2, HEAD_H / 2 - 2)
-    ctx.fillText('เวลา', LABEL_W / 2, HEAD_H / 2 + 11)
+    ctx.fillText('วัน',  scrollX + LABEL_W / 2, HEAD_H / 2 - 2)
+    ctx.fillText('เวลา', scrollX + LABEL_W / 2, HEAD_H / 2 + 11)
 
     // Border lines
     ctx.strokeStyle = t.GRID_MAJOR; ctx.lineWidth = 1
     ctx.beginPath(); ctx.moveTo(0, HEAD_H);  ctx.lineTo(W, HEAD_H);  ctx.stroke()
-    ctx.beginPath(); ctx.moveTo(LABEL_W, 0); ctx.lineTo(LABEL_W, H); ctx.stroke()
+    ctx.beginPath(); ctx.moveTo(scrollX + LABEL_W, 0); ctx.lineTo(scrollX + LABEL_W, H); ctx.stroke()
 
     // Current-time indicator
     const now  = new Date()
@@ -365,6 +368,15 @@ export default function TimetableCanvas({
     return () => canvas.removeEventListener('touchmove', fn)
   }, [])
 
+  // Redraw when canvas-scroll scrolls (so sticky day labels reposition)
+  useEffect(() => {
+    const scrollEl = canvasRef.current?.parentElement
+    if (!scrollEl) return
+    const fn = () => { if (!rafRef.current) rafRef.current = requestAnimationFrame(() => { draw(); rafRef.current = null }) }
+    scrollEl.addEventListener('scroll', fn, { passive: true })
+    return () => scrollEl.removeEventListener('scroll', fn)
+  }, [draw])
+
   // ── Helpers ───────────────────────────────────────────
   function metrics() {
     const canvas = canvasRef.current
@@ -377,7 +389,8 @@ export default function TimetableCanvas({
   function slotAt(clientX, clientY) {
     const m = metrics(); if (!m) return null
     const mx = clientX - m.rect.left, my = clientY - m.rect.top
-    if (mx < LABEL_W || my < HEAD_H) return null
+    const sx = scrollXRef.current
+    if (mx < sx + LABEL_W || my < HEAD_H) return null
     const di   = Math.floor((my - HEAD_H) / m.ROW_H)
     const minM = START_M + ((mx - LABEL_W) / m.TIME_W) * TOTAL_M
     for (let ci = schedule.length - 1; ci >= 0; ci--) {
@@ -395,7 +408,8 @@ export default function TimetableCanvas({
   function posAt(clientX, clientY) {
     const m = metrics(); if (!m) return null
     const mx = clientX - m.rect.left, my = clientY - m.rect.top
-    if (mx < LABEL_W || my < HEAD_H || mx > m.W || my > m.H) return null
+    const sx = scrollXRef.current
+    if (mx < sx + LABEL_W || my < HEAD_H || mx > m.W || my > m.H) return null
     const di = Math.floor((my - HEAD_H) / m.ROW_H)
     if (di < 0 || di >= DAYS.length) return null
     return { di, minM: START_M + ((mx - LABEL_W) / m.TIME_W) * TOTAL_M }
@@ -410,7 +424,8 @@ export default function TimetableCanvas({
   function updateHoverFrom(clientX, clientY) {
     const m = metrics(); if (!m) return
     const mx = clientX - m.rect.left, my = clientY - m.rect.top
-    if (mx >= LABEL_W && my >= HEAD_H && mx <= m.W && my <= m.H) {
+    const sx = scrollXRef.current
+    if (mx >= sx + LABEL_W && my >= HEAD_H && mx <= m.W && my <= m.H) {
       const di = Math.floor((my - HEAD_H) / m.ROW_H)
       hoverRef.current = (di >= 0 && di < DAYS.length)
         ? { di, minM: START_M + ((mx - LABEL_W) / m.TIME_W) * TOTAL_M }
