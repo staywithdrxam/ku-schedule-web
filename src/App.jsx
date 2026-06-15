@@ -5,6 +5,7 @@ import SplashScreen from './components/SplashScreen'
 import LeftPanel from './components/LeftPanel'
 import RightPanel from './components/RightPanel'
 import CourseDialog from './components/CourseDialog'
+import TutorialModal from './components/TutorialModal'
 
 const STORAGE_KEY = 'ku_schedule_v1'
 const STORAGE_THEME = 'ku_theme_v1'
@@ -28,6 +29,8 @@ function assignColors(schedule) {
 
 export default function App() {
   const [splash, setSplash] = useState(true)
+  const [showTutorial, setShowTutorial] = useState(false)
+  const [leftCollapsed, setLeftCollapsed] = useState(false)
   const [isAuto, setIsAuto] = useState(() => localStorage.getItem(STORAGE_AUTO) !== 'false')
   const [theme, setThemeRaw] = useState(() => {
     const auto = localStorage.getItem(STORAGE_AUTO) !== 'false'
@@ -77,7 +80,10 @@ export default function App() {
   useEffect(() => { localStorage.setItem(STORAGE_MAX_CR, String(maxCr)) }, [maxCr])
 
   useEffect(() => {
-    const timer = setTimeout(() => setSplash(false), 1600)
+    const timer = setTimeout(() => {
+      setSplash(false)
+      setShowTutorial(true)
+    }, 1600)
     return () => clearTimeout(timer)
   }, [])
 
@@ -128,10 +134,12 @@ export default function App() {
   return (
     <>
       {splash && <SplashScreen />}
-      <div className="app-layout">
+      <div className={`app-layout${leftCollapsed ? ' left-collapsed' : ''}`}>
         {/* Left panel — hidden on mobile when timetable tab active */}
         <LeftPanel
           className={activeTab !== 'settings' ? 'panel-hidden-mobile' : ''}
+          collapsed={leftCollapsed}
+          onToggleCollapse={() => setLeftCollapsed(c => !c)}
           theme={theme} setTheme={setTheme} isAuto={isAuto}
           semester={semester} setSemester={setSemester}
           schedule={schedule} totalCr={totalCr} maxCr={maxCr} setMaxCr={setMaxCr}
@@ -203,6 +211,17 @@ export default function App() {
           {isAuto ? '🌗' : theme === 'Dark' ? '🌙' : '☀️'}
         </button>
       )}
+
+      {/* Expand button — shows when left panel is collapsed (desktop only) */}
+      {leftCollapsed && (
+        <button className="panel-expand-btn" onClick={() => setLeftCollapsed(false)} title="แสดงเครื่องมือ">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 18l6-6-6-6"/>
+          </svg>
+        </button>
+      )}
+
+      {showTutorial && <TutorialModal onClose={() => setShowTutorial(false)} />}
 
       {dialogOpen && (
         <CourseDialog

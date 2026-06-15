@@ -9,7 +9,8 @@ export default function LeftPanel({
   className = '',
   theme, setTheme, isAuto, semester, setSemester,
   schedule, totalCr, maxCr, setMaxCr,
-  conflicts, onAdd, onSave, onClear, unsaved
+  conflicts, onAdd, onSave, onClear, unsaved,
+  collapsed, onToggleCollapse
 }) {
   const maxCrRef = useRef()
   const [copied, setCopied] = useState(false)
@@ -45,7 +46,7 @@ export default function LeftPanel({
   }
 
   return (
-    <div className={`left-panel ${className}`}>
+    <div className={`left-panel ${className}${collapsed ? ' collapsed' : ''}`}>
 
       {/* ── Header ── */}
       <div className="left-header">
@@ -64,6 +65,11 @@ export default function LeftPanel({
               {SEMS.map(s => <option key={s}>{s}</option>)}
             </select>
           </div>
+          <button className="panel-collapse-btn" onClick={onToggleCollapse} title="พับแผง">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 18l-6-6 6-6"/>
+            </svg>
+          </button>
         </div>
       </div>
 

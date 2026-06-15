@@ -27,8 +27,7 @@ body {
 
 /* ── Desktop layout ───────────────────────────── */
 .app-layout {
-  display: grid;
-  grid-template-columns: 360px 1fr;
+  display: flex;
   height: 100vh;
   padding: 10px;
   gap: 10px;
@@ -46,8 +45,41 @@ body {
   border: 1px solid var(--BORDER);
   border-radius: var(--radius);
   overflow: hidden;
-  transition: opacity .2s;
+  transition: width .25s ease, min-width .25s ease, opacity .2s, border .25s;
+  width: 360px;
+  min-width: 360px;
+  flex-shrink: 0;
 }
+.left-panel.collapsed {
+  width: 0 !important;
+  min-width: 0 !important;
+  border: none;
+  opacity: 0;
+}
+.right-panel { flex: 1; min-width: 0; }
+
+/* Collapse/expand buttons */
+.panel-collapse-btn {
+  width: 26px; height: 26px; border-radius: 8px; flex-shrink: 0;
+  border: 1px solid var(--BORDER); background: var(--BG);
+  color: var(--MUTED); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s, color .15s;
+}
+.panel-collapse-btn:hover { background: var(--ACCENT); color: var(--BG); border-color: var(--ACCENT); }
+.panel-expand-btn {
+  position: fixed; top: 50%; left: 10px;
+  transform: translateY(-50%);
+  width: 22px; height: 52px;
+  border-radius: 0 12px 12px 0;
+  border: 1px solid var(--BORDER); border-left: none;
+  background: var(--ACCENT); color: var(--BG);
+  cursor: pointer; z-index: 300;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 3px 0 12px rgba(0,0,0,.2);
+  transition: opacity .15s;
+}
+.panel-expand-btn:hover { opacity: 0.85; }
 .left-header { background: var(--CARD); border-bottom: 1px solid var(--BORDER); }
 .left-header-accent { height: 3px; background: var(--ACCENT); }
 .left-header-inner { display: flex; align-items: center; padding: 10px 14px; gap: 12px; }
@@ -322,6 +354,136 @@ tbody td { padding: 7px 10px; color: var(--TEXT); }
 }
 .btn-add-slot:hover { background: var(--CARD); }
 
+/* ── Tutorial Modal ────────────────────────────────── */
+.tut-overlay {
+  position: fixed; inset: 0; z-index: 8000;
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+}
+.tut-modal {
+  background: var(--CARD);
+  border: 1px solid var(--BORDER);
+  border-radius: 20px;
+  width: 100%; max-width: 480px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  max-height: 90vh;
+}
+.tut-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 20px 0;
+}
+.tut-icon { font-size: 36px; line-height: 1; }
+.tut-close {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 1px solid var(--BORDER);
+  background: var(--BG); color: var(--MUTED);
+  font-size: 14px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s;
+}
+.tut-close:hover { background: var(--BORDER); color: var(--TEXT); }
+.tut-body {
+  padding: 12px 20px 8px; flex: 1; overflow-y: auto;
+}
+.tut-title {
+  font-size: 18px; font-weight: 800; color: var(--TEXT);
+  margin-bottom: 4px;
+}
+.tut-subtitle {
+  font-size: 12px; color: var(--MUTED); margin-bottom: 16px;
+}
+.tut-content { font-size: 13px; color: var(--TEXT); }
+
+/* Welcome slide */
+.tut-welcome p { color: var(--MUTED); line-height: 1.7; margin-bottom: 16px; }
+.tut-feature-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+}
+.tut-feature-item {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--BG); border: 1px solid var(--BORDER);
+  border-radius: 10px; padding: 10px 12px;
+  font-size: 12px; font-weight: 600; color: var(--TEXT);
+}
+.tut-feature-item span:first-child { font-size: 18px; }
+
+/* Steps list */
+.tut-steps-list { display: flex; flex-direction: column; gap: 10px; }
+.tut-step-item {
+  display: flex; gap: 12px; align-items: flex-start;
+  background: var(--BG); border: 1px solid var(--BORDER);
+  border-radius: 12px; padding: 12px;
+}
+.tut-step-num {
+  width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+  background: var(--ACCENT); color: var(--BG);
+  font-size: 13px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+}
+.tut-step-red { background: #ff4444 !important; }
+.tut-step-icon {
+  font-size: 22px; width: 32px; text-align: center; flex-shrink: 0;
+  padding-top: 2px;
+}
+.tut-step-body { flex: 1; }
+.tut-step-title { font-weight: 700; font-size: 13px; color: var(--TEXT); margin-bottom: 3px; }
+.tut-step-desc { font-size: 12px; color: var(--MUTED); line-height: 1.5; }
+.tut-hint {
+  background: color-mix(in srgb, var(--ACCENT) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ACCENT) 30%, transparent);
+  border-radius: 10px; padding: 10px 12px;
+  font-size: 12px; color: var(--MUTED);
+  display: flex; gap: 8px; align-items: flex-start;
+}
+
+/* Progress dots */
+.tut-dots {
+  display: flex; align-items: center; justify-content: center;
+  gap: 6px; padding: 12px 20px 8px;
+}
+.tut-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  border: none; background: var(--BORDER); cursor: pointer;
+  padding: 0; transition: background .2s, width .2s;
+}
+.tut-dot.active {
+  background: var(--ACCENT); width: 22px; border-radius: 4px;
+}
+
+/* Footer */
+.tut-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 20px 20px; gap: 10px;
+}
+.tut-btn-prev {
+  background: none; border: 1px solid var(--BORDER);
+  color: var(--MUTED); border-radius: 10px;
+  padding: 10px 16px; font-size: 13px; cursor: pointer;
+  font-family: var(--font); transition: background .15s;
+}
+.tut-btn-prev:hover:not(:disabled) { background: var(--BORDER); }
+.tut-btn-prev:disabled { opacity: 0.3; cursor: default; }
+.tut-btn-next {
+  background: var(--ACCENT); color: var(--BG);
+  border: none; border-radius: 10px;
+  padding: 10px 20px; font-size: 13px; font-weight: 700;
+  cursor: pointer; font-family: var(--font); transition: opacity .15s;
+}
+.tut-btn-next:hover { opacity: 0.85; }
+.tut-btn-start {
+  background: linear-gradient(135deg, var(--ACCENT), var(--SUCCESS));
+  color: #fff; border: none; border-radius: 10px;
+  padding: 10px 24px; font-size: 14px; font-weight: 800;
+  cursor: pointer; font-family: var(--font);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  transition: opacity .15s;
+}
+.tut-btn-start:hover { opacity: 0.9; }
+
 /* Splash */
 .splash {
   position: fixed; inset: 0; z-index: 9999;
@@ -339,10 +501,10 @@ tbody td { padding: 7px 10px; color: var(--TEXT); }
 /* ── Tablet (768–1023px) ──────────────────────── */
 @media (max-width: 1023px) and (min-width: 768px) {
   .app-layout {
-    grid-template-columns: 280px 1fr;
     padding: 8px;
     gap: 8px;
   }
+  .left-panel { width: 280px; min-width: 280px; }
   .left-header-sub { display: none; }
 }
 
@@ -408,6 +570,9 @@ tbody td { padding: 7px 10px; color: var(--TEXT); }
 
   /* Stats bar scrollable */
   .stats-bar { padding: 0 10px; gap: 8px; height: 44px; }
+
+  /* Hide desktop-only buttons on mobile */
+  .panel-collapse-btn, .panel-expand-btn { display: none !important; }
 
   /* ── Mobile theme toggle ── */
   .mobile-theme-toggle {
