@@ -38,7 +38,7 @@ function mToTime(m) {
 
 export default function TimetableCanvas({
   schedule, conflicts, theme, selectedIdx,
-  onSlotHover, onSlotClick, onSlotEdit, onEmptyClick, onSlotMove
+  onSlotHover, onSlotClick, onSlotEdit, onEmptyClick, onSlotMove, onSlotResize
 }) {
   const canvasRef  = useRef()
   const hoverRef   = useRef(null)
@@ -297,6 +297,35 @@ export default function TimetableCanvas({
       })
     })
 
+    // Resize ghost block
+    if (drag?.type === 'resize' && drag.active && drag.moved) {
+      const rslot = schedule[drag.ci]?.slots?.[drag.slotIdx]
+      if (rslot) {
+        const rdi = DAYS.indexOf(rslot.day)
+        if (rdi >= 0) {
+          const PAD = 3
+          const rsM = t2m(rslot.start)
+          const rgx0 = LABEL_W + ((rsM - START_M) / TOTAL_M) * TIME_W + PAD
+          const rgx1 = LABEL_W + ((drag.ghostEnd - START_M) / TOTAL_M) * TIME_W - PAD
+          const rgy0 = HEAD_H + rdi * ROW_H + PAD
+          const rgbw = rgx1 - rgx0, rgbh = ROW_H - PAD * 2
+          if (rgbw > 0) {
+            const rbase = schedule[drag.ci]?.color || '#b4d4ff'
+            ctx.globalAlpha = 0.55; ctx.fillStyle = rbase
+            roundRect(ctx, rgx0, rgy0, rgbw, rgbh, 6); ctx.fill()
+            ctx.globalAlpha = 1; ctx.strokeStyle = darken(rbase, 0.25); ctx.lineWidth = 2
+            ctx.setLineDash([5, 3])
+            roundRect(ctx, rgx0, rgy0, rgbw, rgbh, 6); ctx.stroke()
+            ctx.setLineDash([])
+            ctx.fillStyle = '#fff'; ctx.font = `700 11px 'Noto Sans Thai', sans-serif`
+            ctx.textAlign = 'center'; ctx.globalAlpha = 0.95
+            ctx.fillText(mToTime(drag.ghostEnd), rgx0 + rgbw / 2, rgy0 + rgbh / 2 + 4, rgbw - 8)
+            ctx.globalAlpha = 1
+          }
+        }
+      }
+    }
+
     // Drag ghost block
     if (drag?.active && drag.moved && drag.ghost) {
       const g   = drag.ghost
@@ -416,6 +445,48 @@ export default function TimetableCanvas({
     drag.ghost = { di, startM }
   }
 
+  function edgeAt(clientX, clientY, threshPx = 9) {
+    const m = metrics(); if (!m) return null
+    const mx = clientX - m.rect.left, my = clientY - m.rect.top
+    if (mx < LABEL_W || my < HEAD_H) return null
+    const di   = Math.floor((my - HEAD_H) / m.ROW_H)
+    const minM = START_M + ((mx - LABEL_W) / m.TIME_W) * TOTAL_M
+    const threshM = (threshPx / m.TIME_W) * TOTAL_M
+    for (let ci = schedule.length - 1; ci >= 0; ci--) {
+      const slots = schedule[ci].slots || []
+      for (let si = 0; si < slots.length; si++) {
+        const slot = slots[si]
+        if (DAYS.indexOf(slot.day) !== di) continue
+        const sM = t2m(slot.start), eM = t2m(slot.end)
+        if (minM >= sM && Math.abs(minM - eM) < threshM)
+          return { ci, slotIdx: si }
+      }
+    }
+    return null
+  }
+
+  function beginResizeDrag(clientX, edge) {
+    const slot = schedule[edge.ci].slots[edge.slotIdx]
+    dragRef.current = {
+      type: 'resize',
+      active: true, moved: false,
+      ci: edge.ci, slotIdx: edge.slotIdx,
+      ghostEnd: t2m(slot.end),
+      startX: clientX,
+    }
+  }
+
+  function updateResizeGhost(clientX) {
+    const drag = dragRef.current; if (!drag?.active) return
+    const m = metrics(); if (!m) return
+    const mx   = clientX - m.rect.left
+    const rawM = START_M + ((mx - LABEL_W) / m.TIME_W) * TOTAL_M
+    const slot = schedule[drag.ci]?.slots?.[drag.slotIdx]
+    const minEnd = slot ? t2m(slot.start) + 30 : START_M + 30
+    drag.ghostEnd = Math.max(minEnd, Math.min(END_M, Math.round(rawM / 30) * 30))
+    if (!drag.moved) drag.moved = true
+  }
+
   function finalizeDrag() {
     const drag = dragRef.current
     if (!drag?.active) return false
@@ -434,6 +505,8 @@ export default function TimetableCanvas({
   // ── Mouse ─────────────────────────────────────────────
   function handleMouseDown(e) {
     if (e.button !== 0) return
+    const edge = edgeAt(e.clientX, e.clientY)
+    if (edge) { beginResizeDrag(e.clientX, edge); return }
     const hit = slotAt(e.clientX, e.clientY)
     if (hit) beginDrag(e.clientX, e.clientY, hit)
   }
@@ -441,6 +514,13 @@ export default function TimetableCanvas({
   function handleMouseMove(e) {
     const drag = dragRef.current
     if (drag?.active) {
+      if (drag.type === 'resize') {
+        updateResizeGhost(e.clientX)
+        if (canvasRef.current) canvasRef.current.style.cursor = 'ew-resize'
+        onSlotHover && onSlotHover(null)
+        scheduleRedraw()
+        return
+      }
       const dx = e.clientX - drag.startX, dy = e.clientY - drag.startY
       if (!drag.moved && Math.sqrt(dx * dx + dy * dy) > 5) {
         drag.moved = true
@@ -454,15 +534,25 @@ export default function TimetableCanvas({
       }
     }
     updateHoverFrom(e.clientX, e.clientY)
-    const hit = slotAt(e.clientX, e.clientY)
+    const hit  = slotAt(e.clientX, e.clientY)
+    const edge = edgeAt(e.clientX, e.clientY)
     onSlotHover && onSlotHover(hit ? { ...hit, x: e.clientX, y: e.clientY } : null)
-    if (canvasRef.current) canvasRef.current.style.cursor = hit ? 'grab' : 'crosshair'
+    if (canvasRef.current)
+      canvasRef.current.style.cursor = edge ? 'ew-resize' : hit ? 'grab' : 'crosshair'
     scheduleRedraw()
   }
 
   function handleMouseUp(e) {
     const drag = dragRef.current
     if (drag?.active) {
+      if (drag.type === 'resize') {
+        const { ci, slotIdx, moved, ghostEnd } = drag
+        dragRef.current = null
+        if (canvasRef.current) canvasRef.current.style.cursor = 'crosshair'
+        if (moved) onSlotResize && onSlotResize(ci, slotIdx, mToTime(ghostEnd))
+        scheduleRedraw()
+        return
+      }
       const ci = drag.ci
       const wasDrag = finalizeDrag()
       if (!wasDrag) {
@@ -495,8 +585,12 @@ export default function TimetableCanvas({
   // ── Touch ─────────────────────────────────────────────
   function handleTouchStart(e) {
     const touch = e.touches[0]; if (!touch) return
-    const hit = slotAt(touch.clientX, touch.clientY)
-    if (hit) beginDrag(touch.clientX, touch.clientY, hit)
+    const edge = edgeAt(touch.clientX, touch.clientY, 14)
+    if (edge) { beginResizeDrag(touch.clientX, edge) }
+    else {
+      const hit = slotAt(touch.clientX, touch.clientY)
+      if (hit) beginDrag(touch.clientX, touch.clientY, hit)
+    }
     updateHoverFrom(touch.clientX, touch.clientY)
     scheduleRedraw()
   }
@@ -506,6 +600,12 @@ export default function TimetableCanvas({
     const touch = e.touches[0]; if (!touch) return
     const drag  = dragRef.current
     if (drag?.active) {
+      if (drag.type === 'resize') {
+        const dx = touch.clientX - drag.startX
+        if (!drag.moved && Math.abs(dx) > 6) drag.moved = true
+        if (drag.moved) { e.preventDefault(); updateResizeGhost(touch.clientX); scheduleRedraw() }
+        return
+      }
       const dx = touch.clientX - drag.startX, dy = touch.clientY - drag.startY
       if (!drag.moved && Math.sqrt(dx * dx + dy * dy) > 8) drag.moved = true
       if (drag.moved) {
@@ -520,17 +620,24 @@ export default function TimetableCanvas({
     const touch = e.changedTouches[0]
     const drag  = dragRef.current
     if (drag?.active) {
-      const ci = drag.ci
-      const wasDrag = finalizeDrag()
-      if (!wasDrag) {
-        const now = Date.now()
-        const last = lastClickRef.current
-        if (last.ci === ci && now - last.time < 450) {
-          onSlotEdit && onSlotEdit(ci)
-          lastClickRef.current = { ci: -1, time: 0 }
-        } else {
-          lastClickRef.current = { ci, time: now }
-          onSlotClick && onSlotClick(ci)
+      if (drag.type === 'resize') {
+        const { ci, slotIdx, moved, ghostEnd } = drag
+        dragRef.current = null
+        if (moved) onSlotResize && onSlotResize(ci, slotIdx, mToTime(ghostEnd))
+        scheduleRedraw()
+      } else {
+        const ci = drag.ci
+        const wasDrag = finalizeDrag()
+        if (!wasDrag) {
+          const now = Date.now()
+          const last = lastClickRef.current
+          if (last.ci === ci && now - last.time < 450) {
+            onSlotEdit && onSlotEdit(ci)
+            lastClickRef.current = { ci: -1, time: 0 }
+          } else {
+            lastClickRef.current = { ci, time: now }
+            onSlotClick && onSlotClick(ci)
+          }
         }
       }
     } else if (touch) {

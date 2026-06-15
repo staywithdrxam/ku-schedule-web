@@ -117,6 +117,20 @@ export default function App() {
     setConfirmOpen(false)
   }, [])
 
+  const resizeSlot = useCallback((ci, slotIdx, newEnd) => {
+    setSchedule(prev => {
+      setUndoStack(stack => [...stack.slice(-19), prev])
+      return prev.map((c, i) => {
+        if (i !== ci) return c
+        const slots = (c.slots || []).map((s, si) =>
+          si === slotIdx ? { ...s, end: newEnd } : s
+        )
+        return { ...c, slots }
+      })
+    })
+    setUnsaved(true)
+  }, [])
+
   const moveSlot = useCallback((ci, slotIdx, newDay, newStart, newEnd) => {
     setSchedule(prev => {
       setUndoStack(stack => [...stack.slice(-19), prev])
@@ -241,7 +255,7 @@ export default function App() {
           className={activeTab !== 'timetable' ? 'panel-hidden-mobile' : ''}
           schedule={schedule} conflicts={conflicts}
           selectedIdx={selectedIdx} setSelectedIdx={setSelectedIdx}
-          onEdit={openEdit} onDelete={deleteCourse} onAddAt={openAddAt} onMoveSlot={moveSlot}
+          onEdit={openEdit} onDelete={deleteCourse} onAddAt={openAddAt} onMoveSlot={moveSlot} onResizeSlot={resizeSlot}
           tooltip={tooltip} setTooltip={setTooltip}
           theme={theme} semester={semester}
         />
