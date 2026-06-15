@@ -58,8 +58,12 @@ export default function App() {
   const pasteIdxRef = useRef(-1)
   const scheduleRef = useRef(schedule)
   const copiedCourseRef = useRef(null)
+  const selectedIdxRef = useRef(selectedIdx)
+  const dialogOpenRef = useRef(dialogOpen)
   useEffect(() => { scheduleRef.current = schedule }, [schedule])
   useEffect(() => { copiedCourseRef.current = copiedCourse }, [copiedCourse])
+  useEffect(() => { selectedIdxRef.current = selectedIdx }, [selectedIdx])
+  useEffect(() => { dialogOpenRef.current = dialogOpen }, [dialogOpen])
 
   const setTheme = useCallback((val) => {
     if (val === '__auto__') {
@@ -147,7 +151,7 @@ export default function App() {
 
   useEffect(() => {
     const handler = (e) => {
-      if (dialogOpen) return
+      if (dialogOpenRef.current) return
       const mod = e.ctrlKey || e.metaKey
 
       if (mod && e.key === 'z') {
@@ -164,9 +168,10 @@ export default function App() {
       }
 
       if (mod && e.key === 'c' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+        const si = selectedIdxRef.current
         const cur = scheduleRef.current
-        if (selectedIdx !== null && cur[selectedIdx]) {
-          const course = cur[selectedIdx]
+        if (si !== null && cur[si]) {
+          const course = cur[si]
           setCopiedCourse({ ...course })
           copiedCourseRef.current = { ...course }
           setCopyToast(`คัดลอก "${course.name || course.code}" แล้ว`)
@@ -199,7 +204,7 @@ export default function App() {
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [dialogOpen, selectedIdx])
+  }, [])
 
   const submitCourse = useCallback((course) => {
     setSchedule(prev => {
