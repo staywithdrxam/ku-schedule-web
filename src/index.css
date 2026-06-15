@@ -504,6 +504,8 @@ tbody td { padding: 7px 10px; color: var(--TEXT); }
   .panel-hidden-mobile { display: none !important; }
 
   .left-panel {
+    width: 100% !important;
+    min-width: unset !important;
     height: calc(100dvh - 94px - env(safe-area-inset-bottom));
     height: calc(100svh - 94px - env(safe-area-inset-bottom));
     border-radius: 0;
