@@ -48,7 +48,7 @@ export default function TutorialModal({ onClose }) {
             <div className="tut-app-icon">📅</div>
             <div>
               <div className="tut-title">วิธีใช้งาน</div>
-              <div className="tut-subtitle">Schedule Planner · KU กำแพงแสน</div>
+              <div className="tut-subtitle">Schedule Planner</div>
             </div>
           </div>
           <button className="tut-close" onClick={onClose} title="ปิด (ESC)">✕</button>
