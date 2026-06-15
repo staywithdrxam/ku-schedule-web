@@ -50,6 +50,8 @@ export default function App() {
   const [tooltip, setTooltip] = useState(null)
   const [unsaved, setUnsaved] = useState(false)
   const [activeTab, setActiveTab] = useState('timetable')
+  const [undoStack, setUndoStack] = useState([])
+  const [undoToast, setUndoToast] = useState(false)
 
   const setTheme = useCallback((val) => {
     if (val === '__auto__') {
@@ -110,12 +112,32 @@ export default function App() {
 
   const deleteCourse = useCallback((idx) => {
     setSchedule(prev => {
+      setUndoStack(stack => [...stack.slice(-19), prev])
       const next = prev.filter((_, i) => i !== idx)
       setUnsaved(true)
       return assignColors(next)
     })
     setSelectedIdx(null)
   }, [])
+
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !dialogOpen) {
+        setUndoStack(stack => {
+          if (!stack.length) return stack
+          const prev = stack[stack.length - 1]
+          setSchedule(prev)
+          setUnsaved(true)
+          setUndoToast(true)
+          setTimeout(() => setUndoToast(false), 2000)
+          return stack.slice(0, -1)
+        })
+        e.preventDefault()
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [dialogOpen])
 
   const submitCourse = useCallback((course) => {
     setSchedule(prev => {
@@ -222,6 +244,20 @@ export default function App() {
       )}
 
       {showTutorial && <TutorialModal onClose={() => setShowTutorial(false)} />}
+
+      {undoToast && (
+        <div style={{
+          position: 'fixed', bottom: 80, left: '50%', transform: 'translateX(-50%)',
+          background: 'var(--TEXT)', color: 'var(--BG)',
+          padding: '10px 20px', borderRadius: 12,
+          fontSize: 13, fontWeight: 600, zIndex: 9999,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+          pointerEvents: 'none',
+          whiteSpace: 'nowrap'
+        }}>
+          ย้อนกลับแล้ว (Ctrl+Z)
+        </div>
+      )}
 
       {dialogOpen && (
         <CourseDialog
