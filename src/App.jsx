@@ -53,6 +53,8 @@ export default function App() {
   const [undoStack, setUndoStack] = useState([])
   const [undoToast, setUndoToast] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [copiedCourse, setCopiedCourse] = useState(null)
+  const [copyToast, setCopyToast] = useState('')
 
   const setTheme = useCallback((val) => {
     if (val === '__auto__') {
@@ -139,7 +141,10 @@ export default function App() {
 
   useEffect(() => {
     const handler = (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !dialogOpen) {
+      if (dialogOpen) return
+      const mod = e.ctrlKey || e.metaKey
+
+      if (mod && e.key === 'z') {
         setUndoStack(stack => {
           if (!stack.length) return stack
           const prev = stack[stack.length - 1]
@@ -151,10 +156,38 @@ export default function App() {
         })
         e.preventDefault()
       }
+
+      if (mod && e.key === 'c' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+        setSchedule(cur => {
+          if (selectedIdx !== null && cur[selectedIdx]) {
+            setCopiedCourse({ ...cur[selectedIdx] })
+            setCopyToast(`คัดลอก "${cur[selectedIdx].name || cur[selectedIdx].code}" แล้ว`)
+            setTimeout(() => setCopyToast(''), 2000)
+          }
+          return cur
+        })
+        e.preventDefault()
+      }
+
+      if (mod && e.key === 'v' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+        setCopiedCourse(copied => {
+          if (!copied) return copied
+          setSchedule(prev => {
+            setUndoStack(stack => [...stack.slice(-19), prev])
+            const pasted = { ...copied, name: copied.name ? `${copied.name} (สำเนา)` : '' }
+            return assignColors([...prev, pasted])
+          })
+          setUnsaved(true)
+          setCopyToast('วางวิชาแล้ว')
+          setTimeout(() => setCopyToast(''), 2000)
+          return copied
+        })
+        e.preventDefault()
+      }
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [dialogOpen])
+  }, [dialogOpen, selectedIdx])
 
   const submitCourse = useCallback((course) => {
     setSchedule(prev => {
@@ -262,17 +295,16 @@ export default function App() {
 
       {showTutorial && <TutorialModal onClose={() => setShowTutorial(false)} />}
 
-      {undoToast && (
+      {(undoToast || copyToast) && (
         <div style={{
           position: 'fixed', bottom: 80, left: '50%', transform: 'translateX(-50%)',
           background: 'var(--TEXT)', color: 'var(--BG)',
           padding: '10px 20px', borderRadius: 12,
           fontSize: 13, fontWeight: 600, zIndex: 9999,
           boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-          pointerEvents: 'none',
-          whiteSpace: 'nowrap'
+          pointerEvents: 'none', whiteSpace: 'nowrap'
         }}>
-          ย้อนกลับแล้ว (Ctrl+Z)
+          {copyToast || 'ย้อนกลับแล้ว (Ctrl+Z)'}
         </div>
       )}
 
