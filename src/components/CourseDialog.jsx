@@ -4,14 +4,18 @@ import ColorWheel from './ColorWheel'
 
 const DEFAULT_SLOT = () => ({ day: 'จ', start: '08:00', end: '09:00', room: '', isLab: false })
 
-export default function CourseDialog({ initial, onSubmit, onCancel }) {
+export default function CourseDialog({ initial, prefillSlot, onSubmit, onCancel }) {
   const [name, setName] = useState(initial?.name || '')
   const [code, setCode] = useState(initial?.code || '')
   const [section, setSection] = useState(initial?.section || '')
   const [credits, setCredits] = useState(initial?.credits ?? 3)
   const [instructor, setInstructor] = useState(initial?.instructor || '')
   const [color, setColor] = useState(initial?.color || COLORS[0])
-  const [slots, setSlots] = useState(initial?.slots?.length ? initial.slots : [DEFAULT_SLOT()])
+  const [slots, setSlots] = useState(() => {
+    if (initial?.slots?.length) return initial.slots
+    if (prefillSlot) return [{ day: prefillSlot.day, start: prefillSlot.start, end: prefillSlot.end, room: '', isLab: false }]
+    return [DEFAULT_SLOT()]
+  })
 
   function addSlot() { setSlots(prev => [...prev, DEFAULT_SLOT()]) }
   function removeSlot(i) { setSlots(prev => prev.filter((_, idx) => idx !== i)) }

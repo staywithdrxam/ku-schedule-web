@@ -42,6 +42,7 @@ export default function App() {
   })
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editIdx, setEditIdx] = useState(null)
+  const [prefillSlot, setPrefillSlot] = useState(null)
   const [selectedIdx, setSelectedIdx] = useState(null)
   const [tooltip, setTooltip] = useState(null)
   const [unsaved, setUnsaved] = useState(false)
@@ -93,8 +94,13 @@ export default function App() {
     localStorage.setItem(STORAGE_KEY, '[]')
   }, [])
 
-  const openAdd = () => { setEditIdx(null); setDialogOpen(true) }
-  const openEdit = (idx) => { setEditIdx(idx); setDialogOpen(true) }
+  const openAdd = () => { setEditIdx(null); setPrefillSlot(null); setDialogOpen(true) }
+  const openEdit = (idx) => { setEditIdx(idx); setPrefillSlot(null); setDialogOpen(true) }
+  const openAddAt = useCallback((day, start, end) => {
+    setEditIdx(null)
+    setPrefillSlot({ day, start, end })
+    setDialogOpen(true)
+  }, [])
 
   const deleteCourse = useCallback((idx) => {
     setSchedule(prev => {
@@ -138,7 +144,7 @@ export default function App() {
           className={activeTab !== 'timetable' ? 'panel-hidden-mobile' : ''}
           schedule={schedule} conflicts={conflicts}
           selectedIdx={selectedIdx} setSelectedIdx={setSelectedIdx}
-          onEdit={openEdit} onDelete={deleteCourse}
+          onEdit={openEdit} onDelete={deleteCourse} onAddAt={openAddAt}
           tooltip={tooltip} setTooltip={setTooltip}
           theme={theme} semester={semester}
         />
@@ -183,11 +189,27 @@ export default function App() {
         </button>
       </nav>
 
+      {/* Mobile theme toggle button — visible on timetable tab */}
+      {activeTab === 'timetable' && (
+        <button
+          className="mobile-theme-toggle"
+          onClick={() => {
+            if (isAuto) setTheme('Light')
+            else if (theme === 'Light') setTheme('Dark')
+            else setTheme('__auto__')
+          }}
+          title="เปลี่ยนธีม"
+        >
+          {isAuto ? '🌗' : theme === 'Dark' ? '🌙' : '☀️'}
+        </button>
+      )}
+
       {dialogOpen && (
         <CourseDialog
           initial={editIdx !== null ? schedule[editIdx] : null}
+          prefillSlot={editIdx === null ? prefillSlot : null}
           onSubmit={submitCourse}
-          onCancel={() => setDialogOpen(false)}
+          onCancel={() => { setDialogOpen(false); setPrefillSlot(null) }}
         />
       )}
     </>

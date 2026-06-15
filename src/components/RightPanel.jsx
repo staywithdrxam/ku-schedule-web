@@ -1,13 +1,18 @@
 import React, { useState } from 'react'
 import TimetableCanvas from './TimetableCanvas'
+import { DAYS } from '../constants'
+
+const toTimeStr = (m) =>
+  `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`
 
 export default function RightPanel({
   className = '',
   schedule, conflicts, selectedIdx, setSelectedIdx,
-  onEdit, onDelete, theme, semester, tooltip, setTooltip
+  onEdit, onDelete, onAddAt, theme, semester, tooltip, setTooltip
 }) {
   const totalCr = schedule.reduce((s, c) => s + (Number(c.credits) || 0), 0)
   const totalSlots = schedule.reduce((s, c) => s + (c.slots || []).length, 0)
+  const [pendingDelete, setPendingDelete] = useState(null)
 
   function handleSlotHover(hit) {
     if (!hit) { setTooltip(null); return }
@@ -25,8 +30,33 @@ export default function RightPanel({
     })
   }
 
+  function handleSlotClick(ci) {
+    if (pendingDelete === ci) {
+      onDelete(ci)
+      setPendingDelete(null)
+      setSelectedIdx(null)
+    } else {
+      setPendingDelete(ci)
+      setSelectedIdx(ci)
+    }
+  }
+
+  function handleEmptyClick({ di, minM }) {
+    if (pendingDelete !== null) {
+      setPendingDelete(null)
+      return
+    }
+    const day = DAYS[di]
+    const snapped = Math.round(minM / 30) * 30
+    const startM = Math.max(7 * 60, Math.min(19 * 60, snapped))
+    const endM   = Math.min(20 * 60, startM + 60)
+    onAddAt && onAddAt(day, toTimeStr(startM), toTimeStr(endM))
+  }
+
   return (
-    <div className={`right-panel ${className}`}>
+    <div className={`right-panel ${className}`} onClick={e => {
+      if (e.target === e.currentTarget) setPendingDelete(null)
+    }}>
       {/* Stats bar */}
       <div className="stats-bar">
         <div>
@@ -64,8 +94,10 @@ export default function RightPanel({
             schedule={schedule}
             conflicts={conflicts}
             theme={theme}
+            pendingDelete={pendingDelete}
             onSlotHover={handleSlotHover}
-            onSlotClick={setSelectedIdx}
+            onSlotClick={handleSlotClick}
+            onEmptyClick={handleEmptyClick}
           />
         </div>
       </div>

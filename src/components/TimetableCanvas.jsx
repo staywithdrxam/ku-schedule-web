@@ -30,7 +30,7 @@ const DAY_HEADER_LIGHT = ['#3b7eff','#e0457a','#28a870','#d97706','#7c3aed','#08
 const LABEL_W = 80
 const HEAD_H  = 48
 
-export default function TimetableCanvas({ schedule, conflicts, theme, onSlotHover, onSlotClick }) {
+export default function TimetableCanvas({ schedule, conflicts, theme, pendingDelete, onSlotHover, onSlotClick, onEmptyClick }) {
   const canvasRef = useRef()
 
   const draw = useCallback(() => {
@@ -243,7 +243,34 @@ export default function TimetableCanvas({ schedule, conflicts, theme, onSlotHove
         ctx.globalAlpha = 1
       })
     })
-  }, [schedule, conflicts, theme])
+
+    // ── Pending delete highlight ──────────────────────────
+    if (pendingDelete !== null && schedule[pendingDelete]) {
+      ;(schedule[pendingDelete].slots || []).forEach(slot => {
+        const di = DAYS.indexOf(slot.day)
+        if (di < 0) return
+        const sM = t2m(slot.start), eM = t2m(slot.end)
+        if (eM <= START_M || sM >= END_M) return
+        const PAD = 3
+        const x0 = LABEL_W + ((Math.max(sM, START_M) - START_M) / TOTAL_M) * TIME_W + PAD
+        const x1 = LABEL_W + ((Math.min(eM, END_M)   - START_M) / TOTAL_M) * TIME_W - PAD
+        const y0 = HEAD_H + di * ROW_H + PAD
+        const bw = x1 - x0, bh = ROW_H - PAD * 2
+        if (bw <= 0) return
+        ctx.globalAlpha = 0.45
+        ctx.fillStyle = '#ff2222'
+        roundRect(ctx, x0, y0, bw, bh, 6); ctx.fill()
+        ctx.globalAlpha = 1
+        ctx.strokeStyle = '#ff0000'; ctx.lineWidth = 2
+        roundRect(ctx, x0, y0, bw, bh, 6); ctx.stroke()
+        ctx.fillStyle = '#fff'
+        ctx.font = `700 10px 'Noto Sans Thai', sans-serif`
+        ctx.textAlign = 'center'; ctx.globalAlpha = 0.92
+        ctx.fillText('กดอีกครั้งเพื่อลบ', x0 + bw / 2, y0 + bh / 2 + 4, bw - 8)
+        ctx.globalAlpha = 1
+      })
+    }
+  }, [schedule, conflicts, theme, pendingDelete])
 
   useEffect(() => { draw() }, [draw])
 
@@ -276,12 +303,33 @@ export default function TimetableCanvas({ schedule, conflicts, theme, onSlotHove
     return null
   }
 
+  function getPosAt(e) {
+    const canvas = canvasRef.current
+    if (!canvas) return null
+    const rect = canvas.getBoundingClientRect()
+    const mx = e.clientX - rect.left
+    const my = e.clientY - rect.top
+    const W = rect.width, H = rect.height
+    if (mx < LABEL_W || my < HEAD_H || mx > W || my > H) return null
+    const ROW_H  = (H - HEAD_H) / DAYS.length
+    const TIME_W = W - LABEL_W
+    const di     = Math.floor((my - HEAD_H) / ROW_H)
+    if (di < 0 || di >= DAYS.length) return null
+    const minM = START_M + ((mx - LABEL_W) / TIME_W) * TOTAL_M
+    return { di, minM }
+  }
+
   function handleMouseMove(e) {
     onSlotHover && onSlotHover(getSlotAt(e) || null)
   }
   function handleClick(e) {
     const hit = getSlotAt(e)
-    if (hit) onSlotClick && onSlotClick(hit.ci)
+    if (hit) {
+      onSlotClick && onSlotClick(hit.ci)
+    } else {
+      const pos = getPosAt(e)
+      if (pos) onEmptyClick && onEmptyClick(pos)
+    }
   }
 
   return (
