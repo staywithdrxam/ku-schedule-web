@@ -14,6 +14,7 @@ export default function RightPanel({
   const totalSlots = schedule.reduce((s, c) => s + (c.slots || []).length, 0)
   const [pendingDelete, setPendingDelete] = useState(null)
   const [tableCollapsed, setTableCollapsed] = useState(false)
+  const [deleteConfirmIdx, setDeleteConfirmIdx] = useState(null)
 
   function handleSlotHover(hit) {
     if (!hit) { setTooltip(null); return }
@@ -121,10 +122,7 @@ export default function RightPanel({
             <>
               <button className="btn-sm btn-edit" onClick={() => onEdit(selectedIdx)}>แก้ไข</button>
               <button className="btn-sm btn-delete"
-                onClick={() => {
-                  if (window.confirm(`ลบวิชา "${schedule[selectedIdx]?.name}" หรือไม่?`))
-                    onDelete(selectedIdx)
-                }}>ลบ</button>
+                onClick={() => setDeleteConfirmIdx(selectedIdx)}>ลบ</button>
             </>
           )}
         </div>
@@ -171,6 +169,27 @@ export default function RightPanel({
           {tooltip.content.map((line, i) => (
             <div key={i} style={{ fontWeight: i === 0 ? 700 : 400 }}>{line}</div>
           ))}
+        </div>
+      )}
+
+      {deleteConfirmIdx !== null && (
+        <div className="dialog-overlay" onClick={e => e.target === e.currentTarget && setDeleteConfirmIdx(null)}>
+          <div className="confirm-modal">
+            <div className="confirm-icon">⚠️</div>
+            <div className="confirm-title">ลบวิชานี้?</div>
+            <div className="confirm-desc">
+              <strong>{schedule[deleteConfirmIdx]?.name || schedule[deleteConfirmIdx]?.code || 'วิชานี้'}</strong>
+              <br />จะถูกลบออกจากตาราง สามารถกด Ctrl+Z เพื่อย้อนกลับได้
+            </div>
+            <div className="confirm-actions">
+              <button className="btn-cancel confirm-cancel" onClick={() => setDeleteConfirmIdx(null)}>ยกเลิก</button>
+              <button className="btn-danger-confirm" onClick={() => {
+                onDelete(deleteConfirmIdx)
+                setDeleteConfirmIdx(null)
+                setSelectedIdx(null)
+              }}>ลบวิชา</button>
+            </div>
+          </div>
         </div>
       )}
     </div>
