@@ -246,21 +246,22 @@ export default function TimetableCanvas({ schedule, conflicts, theme, pendingDel
           ctx.fillText('LAB', px + pw / 2, py + 10)
         }
 
-        // Row 1: code (left) + [time] (right, avoid LAB pill)
+        // Row 1: code (left)
         ctx.fillStyle   = tc
-        ctx.globalAlpha = 0.85
-        ctx.font        = `700 11px 'Noto Sans Thai', sans-serif`
+        ctx.globalAlpha = 0.88
+        ctx.font        = `700 10px 'Noto Sans Thai', sans-serif`
         ctx.textAlign   = 'left'
-        ctx.fillText(course.code || '', tx, topY, avail * 0.5)
-        ctx.font        = `500 10px 'Noto Sans Thai', sans-serif`
-        ctx.globalAlpha = 0.55
-        ctx.textAlign   = 'right'
-        ctx.fillText(`[${slot.start}–${slot.end}]`, x0 + bw - LAB_W - 8, topY, avail * 0.45)
+        ctx.fillText(course.code || '', tx, topY, avail - LAB_W - 4)
+
+        // Row 2: [time] below code
+        ctx.font        = `500 9px 'Noto Sans Thai', sans-serif`
+        ctx.globalAlpha = 0.52
+        ctx.fillText(`[${slot.start}–${slot.end}]`, tx, topY + 12, avail - LAB_W - 4)
         ctx.globalAlpha = 1
 
         // Row 2: course name — vertically centered in remaining space
         if (bh > 20 && course.name) {
-          const midTop   = topY + 4
+          const midTop   = topY + 16
           const midBot   = hasBottom ? y0 + bh - 16 : y0 + bh - 4
           const nameY    = (midTop + midBot) / 2 + 5
           const fontSize = bh > 50 ? 13 : bh > 32 ? 11 : 10
