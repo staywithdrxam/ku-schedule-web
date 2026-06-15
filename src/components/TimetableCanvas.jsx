@@ -222,52 +222,62 @@ export default function TimetableCanvas({ schedule, conflicts, theme, pendingDel
         }
 
         // ── Text inside block ────────────────────────────
-        const tc = isLight ? '#1a1a2e' : '#0d0d1a'
-        ctx.globalAlpha = 0.92
-        ctx.fillStyle   = tc
-        ctx.textAlign   = 'left'
-        const tx     = x0 + 6
-        const avail  = bw - 10
+        const tc    = isLight ? '#1a1a2e' : '#0d0d1a'
+        const tx    = x0 + 7
+        const avail = bw - 14
 
-        // Time range
+        // Row 1: code (left) + [time] (right)
+        ctx.fillStyle   = tc
+        ctx.globalAlpha = 0.85
+        ctx.font        = `700 9px 'Noto Sans Thai', sans-serif`
+        ctx.textAlign   = 'left'
+        ctx.fillText(course.code || '', tx, y0 + 11, avail * 0.55)
         ctx.font        = `500 8px 'Noto Sans Thai', sans-serif`
         ctx.globalAlpha = 0.55
-        ctx.fillText(`${slot.start}–${slot.end}`, tx, y0 + 11, avail)
-        ctx.globalAlpha = 0.92
+        ctx.textAlign   = 'right'
+        ctx.fillText(`[${slot.start}–${slot.end}]`, x0 + bw - 5, y0 + 11, avail * 0.55)
+        ctx.globalAlpha = 1
 
-        // Code
-        if (bh > 18) {
-          ctx.font = `700 10px 'Noto Sans Thai', sans-serif`
-          ctx.fillText((course.code || '').substring(0, 12), tx, y0 + 23, avail)
-        }
-
-        // Name
-        if (bh > 32 && course.name) {
-          ctx.font        = `500 9px 'Noto Sans Thai', sans-serif`
-          ctx.globalAlpha = 0.72
-          const ns = course.name.length > 18 ? course.name.substring(0, 17) + '…' : course.name
-          ctx.fillText(ns, tx, y0 + 34, avail)
-          ctx.globalAlpha = 0.92
-        }
-
-        // Room
-        if (bh > 46 && slot.room) {
-          ctx.font        = `9px 'Noto Sans Thai', sans-serif`
-          ctx.globalAlpha = 0.58
-          ctx.fillText(slot.room.substring(0, 14), tx, y0 + 46, avail)
+        // Row 2: course name (centered, bold, larger)
+        if (bh > 22 && course.name) {
+          const fontSize = bh > 40 ? 10 : 9
+          ctx.font        = `700 ${fontSize}px 'Noto Sans Thai', sans-serif`
+          ctx.fillStyle   = tc
+          ctx.globalAlpha = 0.9
+          ctx.textAlign   = 'center'
+          const ns = course.name.length > 20 ? course.name.substring(0, 19) + '…' : course.name
+          ctx.fillText(ns, x0 + bw / 2, y0 + (bh > 40 ? 28 : 23), avail)
           ctx.globalAlpha = 1
         }
 
-        // LAB badge
-        if (slot.isLab) {
-          ctx.font       = `bold 7px sans-serif`
-          ctx.fillStyle  = '#5b21b6'
+        // Row 3: room (left) + section (right) — only if tall enough
+        if (bh > 40) {
+          ctx.font        = `500 8px 'Noto Sans Thai', sans-serif`
+          ctx.globalAlpha = 0.6
+          if (slot.room) {
+            ctx.textAlign = 'left'
+            ctx.fillStyle = tc
+            ctx.fillText(`ห้อง: ${slot.room}`, tx, y0 + bh - 6, avail * 0.55)
+          }
+          if (course.section) {
+            ctx.textAlign = 'right'
+            ctx.fillStyle = tc
+            const stype = slot.isLab ? 'Lab' : 'บรรยาย'
+            ctx.fillText(`หมู่ ${course.section} ${stype}`, x0 + bw - 5, y0 + bh - 6, avail * 0.55)
+          }
+          ctx.globalAlpha = 1
+        }
+
+        // LAB badge (small pill top-right) when no section row
+        if (slot.isLab && bh <= 40) {
+          ctx.font        = `bold 7px sans-serif`
+          ctx.fillStyle   = '#5b21b6'
           ctx.globalAlpha = 0.8
-          ctx.textAlign  = 'right'
-          ctx.fillText('LAB', x0 + bw - 4, y0 + 12)
-          ctx.textAlign  = 'left'
+          ctx.textAlign   = 'right'
+          ctx.fillText('LAB', x0 + bw - 4, y0 + 11)
         }
         ctx.globalAlpha = 1
+        ctx.textAlign   = 'left'
       })
     })
 
