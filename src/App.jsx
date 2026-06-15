@@ -171,8 +171,13 @@ export default function App() {
       if (mod && (e.key === 'z' || e.key === 'Z')) {
         const tag = document.activeElement?.tagName
         if (tag === 'INPUT' || tag === 'TEXTAREA') return
+        e.preventDefault()
         setUndoStack(stack => {
-          if (!stack.length) return stack
+          if (!stack.length) {
+            setCopyToast('ไม่มีอะไรให้ย้อนกลับ')
+            setTimeout(() => setCopyToast(''), 1500)
+            return stack
+          }
           const prev = stack[stack.length - 1]
           setSchedule(prev)
           setUnsaved(true)
@@ -180,10 +185,12 @@ export default function App() {
           setTimeout(() => setUndoToast(false), 2000)
           return stack.slice(0, -1)
         })
-        e.preventDefault()
       }
 
       if (mod && (e.key === 'c' || e.key === 'C')) {
+        const tag = document.activeElement?.tagName
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return
+        e.preventDefault()
         const si = selectedIdxRef.current
         const cur = scheduleRef.current
         if (si !== null && cur[si]) {
@@ -192,15 +199,22 @@ export default function App() {
           copiedCourseRef.current = { ...course }
           setCopyToast(`คัดลอก "${course.name || course.code}" แล้ว`)
           setTimeout(() => setCopyToast(''), 2000)
-          e.preventDefault()
+        } else {
+          setCopyToast('กดที่วิชาในตารางก่อน แล้วค่อยกด Ctrl+C')
+          setTimeout(() => setCopyToast(''), 2000)
         }
       }
 
       if (mod && (e.key === 'v' || e.key === 'V')) {
         const tag = document.activeElement?.tagName
         if (tag === 'INPUT' || tag === 'TEXTAREA') return
+        e.preventDefault()
         const copied = copiedCourseRef.current
-        if (!copied) return
+        if (!copied) {
+          setCopyToast('ยังไม่ได้คัดลอกวิชา — กด Ctrl+C ที่วิชาที่เลือกก่อน')
+          setTimeout(() => setCopyToast(''), 2000)
+          return
+        }
         pasteIdxRef.current = -1
         setSchedule(prev => {
           setUndoStack(stack => [...stack.slice(-19), prev])
