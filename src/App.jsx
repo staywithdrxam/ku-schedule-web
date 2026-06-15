@@ -133,7 +133,7 @@ export default function App() {
 
   return (
     <>
-      {splash && <SplashScreen />}
+      {splash && <SplashScreen theme={theme} />}
       <div className={`app-layout${leftCollapsed ? ' left-collapsed' : ''}`}>
         {/* Left panel — hidden on mobile when timetable tab active */}
         <LeftPanel
