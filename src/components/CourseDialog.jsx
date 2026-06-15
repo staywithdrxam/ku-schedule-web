@@ -11,6 +11,7 @@ export default function CourseDialog({ initial, prefillSlot, onSubmit, onCancel 
   const [credits, setCredits] = useState(initial?.credits ?? 3)
   const [instructor, setInstructor] = useState(initial?.instructor || '')
   const [color, setColor] = useState(initial?.color || COLORS[0])
+  const [errorMsg, setErrorMsg] = useState('')
   const [slots, setSlots] = useState(() => {
     if (initial?.slots?.length) return initial.slots
     if (prefillSlot) return [{ day: prefillSlot.day, start: prefillSlot.start, end: prefillSlot.end, room: '', isLab: false }]
@@ -35,8 +36,13 @@ export default function CourseDialog({ initial, prefillSlot, onSubmit, onCancel 
     setSlots(prev => prev.map((s, idx) => idx === i ? { ...s, [field]: val } : s))
   }
 
+  function showError(msg) {
+    setErrorMsg(msg)
+    setTimeout(() => setErrorMsg(''), 3000)
+  }
+
   function handleSubmit() {
-    if (!name.trim() && !code.trim()) { alert('กรุณาใส่ชื่อหรือรหัสวิชา'); return }
+    if (!name.trim() && !code.trim()) { showError('กรุณาใส่ชื่อหรือรหัสวิชา'); return }
     onSubmit({ name: name.trim(), code: code.trim(), section: section.trim(), credits: Number(credits) || 0, instructor: instructor.trim(), color, slots })
   }
 
@@ -52,6 +58,12 @@ export default function CourseDialog({ initial, prefillSlot, onSubmit, onCancel 
             </div>
           </div>
         </div>
+
+        {errorMsg && (
+          <div className="dialog-error-banner">
+            <span>⚠</span> {errorMsg}
+          </div>
+        )}
 
         <div className="dialog-body">
           {/* Name & Code */}
