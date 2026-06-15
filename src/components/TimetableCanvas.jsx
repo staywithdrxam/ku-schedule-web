@@ -223,58 +223,64 @@ export default function TimetableCanvas({ schedule, conflicts, theme, pendingDel
 
         // ── Text inside block ────────────────────────────
         const tc    = isLight ? '#1a1a2e' : '#0d0d1a'
-        const tx    = x0 + 7
-        const avail = bw - 14
+        const tx    = x0 + 8
+        const avail = bw - 16
+
+        const hasBottom = bh > 46 && (slot.room || course.section)
+        const topY      = y0 + 13
 
         // Row 1: code (left) + [time] (right)
         ctx.fillStyle   = tc
         ctx.globalAlpha = 0.85
-        ctx.font        = `700 9px 'Noto Sans Thai', sans-serif`
+        ctx.font        = `700 11px 'Noto Sans Thai', sans-serif`
         ctx.textAlign   = 'left'
-        ctx.fillText(course.code || '', tx, y0 + 11, avail * 0.55)
-        ctx.font        = `500 8px 'Noto Sans Thai', sans-serif`
+        ctx.fillText(course.code || '', tx, topY, avail * 0.55)
+        ctx.font        = `500 10px 'Noto Sans Thai', sans-serif`
         ctx.globalAlpha = 0.55
         ctx.textAlign   = 'right'
-        ctx.fillText(`[${slot.start}–${slot.end}]`, x0 + bw - 5, y0 + 11, avail * 0.55)
+        ctx.fillText(`[${slot.start}–${slot.end}]`, x0 + bw - 6, topY, avail * 0.55)
         ctx.globalAlpha = 1
 
-        // Row 2: course name (centered, bold, larger)
-        if (bh > 22 && course.name) {
-          const fontSize = bh > 40 ? 10 : 9
-          ctx.font        = `700 ${fontSize}px 'Noto Sans Thai', sans-serif`
+        // Row 2: course name — vertically centered in remaining space
+        if (bh > 20 && course.name) {
+          const midTop    = topY + 4
+          const midBot    = hasBottom ? y0 + bh - 16 : y0 + bh - 4
+          const nameY     = (midTop + midBot) / 2 + 5
+          const fontSize  = bh > 50 ? 13 : bh > 32 ? 11 : 10
+          ctx.font        = `800 ${fontSize}px 'Noto Sans Thai', sans-serif`
           ctx.fillStyle   = tc
-          ctx.globalAlpha = 0.9
+          ctx.globalAlpha = 0.92
           ctx.textAlign   = 'center'
-          const ns = course.name.length > 20 ? course.name.substring(0, 19) + '…' : course.name
-          ctx.fillText(ns, x0 + bw / 2, y0 + (bh > 40 ? 28 : 23), avail)
+          const maxChars  = Math.floor(avail / (fontSize * 0.62))
+          const ns        = course.name.length > maxChars ? course.name.substring(0, maxChars - 1) + '…' : course.name
+          ctx.fillText(ns, x0 + bw / 2, nameY, avail)
           ctx.globalAlpha = 1
         }
 
-        // Row 3: room (left) + section (right) — only if tall enough
-        if (bh > 40) {
-          ctx.font        = `500 8px 'Noto Sans Thai', sans-serif`
-          ctx.globalAlpha = 0.6
+        // Row 3: room (left) + section (right)
+        if (hasBottom) {
+          ctx.font        = `500 10px 'Noto Sans Thai', sans-serif`
+          ctx.globalAlpha = 0.62
+          ctx.fillStyle   = tc
           if (slot.room) {
             ctx.textAlign = 'left'
-            ctx.fillStyle = tc
-            ctx.fillText(`ห้อง: ${slot.room}`, tx, y0 + bh - 6, avail * 0.55)
+            ctx.fillText(`ห้อง: ${slot.room}`, tx, y0 + bh - 5, avail * 0.55)
           }
           if (course.section) {
             ctx.textAlign = 'right'
-            ctx.fillStyle = tc
             const stype = slot.isLab ? 'Lab' : 'บรรยาย'
-            ctx.fillText(`หมู่ ${course.section} ${stype}`, x0 + bw - 5, y0 + bh - 6, avail * 0.55)
+            ctx.fillText(`หมู่ ${course.section} ${stype}`, x0 + bw - 6, y0 + bh - 5, avail * 0.55)
           }
           ctx.globalAlpha = 1
         }
 
-        // LAB badge (small pill top-right) when no section row
-        if (slot.isLab && bh <= 40) {
-          ctx.font        = `bold 7px sans-serif`
+        // LAB badge when no bottom row
+        if (slot.isLab && !hasBottom) {
+          ctx.font        = `bold 8px sans-serif`
           ctx.fillStyle   = '#5b21b6'
           ctx.globalAlpha = 0.8
           ctx.textAlign   = 'right'
-          ctx.fillText('LAB', x0 + bw - 4, y0 + 11)
+          ctx.fillText('LAB', x0 + bw - 5, topY)
         }
         ctx.globalAlpha = 1
         ctx.textAlign   = 'left'
