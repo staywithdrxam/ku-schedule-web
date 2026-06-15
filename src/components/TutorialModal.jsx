@@ -1,4 +1,6 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
+
+const TUTO_HIDE_KEY = 'ku_tutorial_hide_until'
 
 const TIPS = [
   {
@@ -9,11 +11,11 @@ const TIPS = [
     desc: 'กดปุ่ม + หรือแตะช่องว่างในตารางตรงวันและเวลาที่ต้องการ',
   },
   {
-    icon: '✕',
+    icon: '✎',
     color: '#e05a7a',
     bg: 'rgba(224,90,122,0.12)',
-    title: 'ลบวิชา',
-    desc: 'แตะวิชาในตาราง 1 ครั้ง (เป็นสีแดง) แล้วแตะอีกครั้งเพื่อลบ',
+    title: 'แก้ไข / ลบวิชา',
+    desc: 'แตะวิชา 1 ครั้งเพื่อเลือก แล้วกดปุ่มที่ปรากฏ หรือแตะ 2 ครั้งเพื่อแก้ไขทันที',
   },
   {
     icon: '↓',
@@ -32,17 +34,25 @@ const TIPS = [
 ]
 
 export default function TutorialModal({ onClose }) {
+  const [hideForDay, setHideForDay] = useState(false)
+
+  function handleClose() {
+    if (hideForDay) {
+      localStorage.setItem(TUTO_HIDE_KEY, String(Date.now() + 24 * 60 * 60 * 1000))
+    }
+    onClose()
+  }
+
   useEffect(() => {
-    const handler = (e) => { if (e.key === 'Escape') onClose() }
+    const handler = (e) => { if (e.key === 'Escape') handleClose() }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [onClose])
+  }, [hideForDay])
 
   return (
-    <div className="tut-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+    <div className="tut-overlay" onClick={e => e.target === e.currentTarget && handleClose()}>
       <div className="tut-modal">
 
-        {/* Header */}
         <div className="tut-header">
           <div className="tut-header-left">
             <div className="tut-app-icon">📅</div>
@@ -51,10 +61,9 @@ export default function TutorialModal({ onClose }) {
               <div className="tut-subtitle">Schedule Planner</div>
             </div>
           </div>
-          <button className="tut-close" onClick={onClose} title="ปิด (ESC)">✕</button>
+          <button className="tut-close" onClick={handleClose} title="ปิด (ESC)">✕</button>
         </div>
 
-        {/* Tips */}
         <div className="tut-body">
           {TIPS.map((tip, i) => (
             <div className="tut-tip-row" key={i}>
@@ -69,10 +78,17 @@ export default function TutorialModal({ onClose }) {
           ))}
         </div>
 
-        {/* Footer */}
         <div className="tut-footer">
-          <span className="tut-hint">กด ESC เพื่อปิด</span>
-          <button className="tut-btn-start" onClick={onClose}>เริ่มใช้งาน →</button>
+          <label className="tut-skip-label">
+            <input
+              type="checkbox"
+              className="tut-skip-check"
+              checked={hideForDay}
+              onChange={e => setHideForDay(e.target.checked)}
+            />
+            <span>ไม่แสดงหน้านี้อีก 1 วัน</span>
+          </label>
+          <button className="tut-btn-start" onClick={handleClose}>เริ่มใช้งาน →</button>
         </div>
 
       </div>

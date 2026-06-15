@@ -456,6 +456,11 @@ tbody td { padding: 7px 10px; color: var(--TEXT); }
   padding: 16px 24px 22px;
 }
 .tut-hint { font-size: 11px; color: var(--MUTED); opacity: 0.7; }
+.tut-skip-label {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12px; color: var(--MUTED); cursor: pointer; user-select: none;
+}
+.tut-skip-check { width: 15px; height: 15px; accent-color: var(--ACCENT); cursor: pointer; flex-shrink: 0; }
 .tut-btn-start {
   background: linear-gradient(135deg, var(--ACCENT) 0%, #a78bfa 100%);
   color: #fff; border: none; border-radius: 14px;
@@ -467,6 +472,32 @@ tbody td { padding: 7px 10px; color: var(--TEXT); }
 }
 .tut-btn-start:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(108,99,255,0.45); }
 .tut-btn-start:active { transform: translateY(0); }
+
+/* ── Canvas action bar ──────────────────────────── */
+.canvas-action-bar {
+  position: absolute; bottom: 10px; right: 10px;
+  display: flex; gap: 6px; z-index: 20;
+  animation: cab-in .15s ease;
+}
+@keyframes cab-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.cab-btn {
+  padding: 7px 14px; border-radius: 10px; border: none;
+  font-size: 12px; font-weight: 700; cursor: pointer;
+  white-space: nowrap; font-family: var(--font);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.22);
+  transition: filter .12s, transform .12s;
+}
+.cab-btn:active { transform: scale(0.96); }
+.cab-edit { background: var(--ACCENT); color: #fff; }
+.cab-edit:hover { filter: brightness(1.12); }
+.cab-delete { background: rgba(210,50,50,0.88); color: #fff; }
+.cab-delete:hover { filter: brightness(1.15); }
+.cab-close { background: var(--CARD); color: var(--TEXT); border: 1px solid var(--BORDER); }
+.cab-close:hover { background: var(--BORDER); }
 
 /* ── Custom confirm modal ─────────────────────── */
 .confirm-modal {

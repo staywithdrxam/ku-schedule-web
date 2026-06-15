@@ -37,14 +37,15 @@ function mToTime(m) {
 }
 
 export default function TimetableCanvas({
-  schedule, conflicts, theme, pendingDelete,
-  onSlotHover, onSlotClick, onEmptyClick, onSlotMove
+  schedule, conflicts, theme, selectedIdx,
+  onSlotHover, onSlotClick, onSlotEdit, onEmptyClick, onSlotMove
 }) {
   const canvasRef  = useRef()
   const hoverRef   = useRef(null)
   const rafRef     = useRef(null)
   const dragRef    = useRef(null)
   // dragRef = { active, ci, slotIdx, duration, offsetM, ghost:{di,startM}|null, moved, startX, startY }
+  const lastClickRef = useRef({ ci: -1, time: 0 })
 
   // Keep a stable ref to handlers so the non-passive touchmove listener can always call the latest version
   const touchMoveHandlerRef = useRef()
@@ -223,6 +224,16 @@ export default function TimetableCanvas({
           roundRect(ctx, x0, y0, bw, bh, 6); ctx.stroke()
         }
 
+        // Selection glow border
+        if (selectedIdx === ci) {
+          ctx.strokeStyle = '#6c63ff'
+          ctx.lineWidth = 2.5
+          ctx.globalAlpha = 0.9
+          ctx.setLineDash([])
+          roundRect(ctx, x0, y0, bw, bh, 6); ctx.stroke()
+          ctx.globalAlpha = 1
+        }
+
         const tc      = isLight ? '#1a1a2e' : '#0d0d1a'
         const tx      = x0 + 8
         const avail   = bw - 16
@@ -298,30 +309,7 @@ export default function TimetableCanvas({
       }
     }
 
-    // Pending-delete highlight
-    if (pendingDelete !== null && schedule[pendingDelete]) {
-      ;(schedule[pendingDelete].slots || []).forEach(slot => {
-        const di = DAYS.indexOf(slot.day)
-        if (di < 0) return
-        const sM = t2m(slot.start), eM = t2m(slot.end)
-        if (eM <= START_M || sM >= END_M) return
-        const PAD = 3
-        const x0 = LABEL_W + ((Math.max(sM, START_M) - START_M) / TOTAL_M) * TIME_W + PAD
-        const x1 = LABEL_W + ((Math.min(eM, END_M)   - START_M) / TOTAL_M) * TIME_W - PAD
-        const y0 = HEAD_H + di * ROW_H + PAD
-        const bw = x1 - x0, bh = ROW_H - PAD * 2
-        if (bw <= 0) return
-        ctx.globalAlpha = 0.45; ctx.fillStyle = '#ff2222'
-        roundRect(ctx, x0, y0, bw, bh, 6); ctx.fill()
-        ctx.globalAlpha = 1; ctx.strokeStyle = '#ff0000'; ctx.lineWidth = 2
-        roundRect(ctx, x0, y0, bw, bh, 6); ctx.stroke()
-        ctx.fillStyle = '#fff'; ctx.font = `700 10px 'Noto Sans Thai', sans-serif`
-        ctx.textAlign = 'center'; ctx.globalAlpha = 0.92
-        ctx.fillText('กดอีกครั้งเพื่อลบ', x0 + bw / 2, y0 + bh / 2 + 4, bw - 8)
-        ctx.globalAlpha = 1
-      })
-    }
-  }, [schedule, conflicts, theme, pendingDelete])
+  }, [schedule, conflicts, theme, selectedIdx])
 
   useEffect(() => { draw() }, [draw])
   useEffect(() => {
@@ -466,8 +454,19 @@ export default function TimetableCanvas({
   function handleMouseUp(e) {
     const drag = dragRef.current
     if (drag?.active) {
+      const ci = drag.ci
       const wasDrag = finalizeDrag()
-      if (!wasDrag) onSlotClick && onSlotClick(drag.ci)
+      if (!wasDrag) {
+        const now = Date.now()
+        const last = lastClickRef.current
+        if (last.ci === ci && now - last.time < 350) {
+          onSlotEdit && onSlotEdit(ci)
+          lastClickRef.current = { ci: -1, time: 0 }
+        } else {
+          lastClickRef.current = { ci, time: now }
+          onSlotClick && onSlotClick(ci)
+        }
+      }
     } else {
       const pos = posAt(e.clientX, e.clientY)
       if (pos) onEmptyClick && onEmptyClick(pos)
@@ -512,8 +511,19 @@ export default function TimetableCanvas({
     const touch = e.changedTouches[0]
     const drag  = dragRef.current
     if (drag?.active) {
+      const ci = drag.ci
       const wasDrag = finalizeDrag()
-      if (!wasDrag) onSlotClick && onSlotClick(drag.ci)
+      if (!wasDrag) {
+        const now = Date.now()
+        const last = lastClickRef.current
+        if (last.ci === ci && now - last.time < 450) {
+          onSlotEdit && onSlotEdit(ci)
+          lastClickRef.current = { ci: -1, time: 0 }
+        } else {
+          lastClickRef.current = { ci, time: now }
+          onSlotClick && onSlotClick(ci)
+        }
+      }
     } else if (touch) {
       const pos = posAt(touch.clientX, touch.clientY)
       if (pos) onEmptyClick && onEmptyClick(pos)

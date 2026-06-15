@@ -12,7 +12,6 @@ export default function RightPanel({
 }) {
   const totalCr = schedule.reduce((s, c) => s + (Number(c.credits) || 0), 0)
   const totalSlots = schedule.reduce((s, c) => s + (c.slots || []).length, 0)
-  const [pendingDelete, setPendingDelete] = useState(null)
   const [tableCollapsed, setTableCollapsed] = useState(false)
   const [deleteConfirmIdx, setDeleteConfirmIdx] = useState(null)
 
@@ -33,21 +32,11 @@ export default function RightPanel({
   }
 
   function handleSlotClick(ci) {
-    if (pendingDelete === ci) {
-      onDelete(ci)
-      setPendingDelete(null)
-      setSelectedIdx(null)
-    } else {
-      setPendingDelete(ci)
-      setSelectedIdx(ci)
-    }
+    setSelectedIdx(selectedIdx === ci ? null : ci)
   }
 
   function handleEmptyClick({ di, minM }) {
-    if (pendingDelete !== null) {
-      setPendingDelete(null)
-      return
-    }
+    setSelectedIdx(null)
     const day = DAYS[di]
     const snapped = Math.round(minM / 30) * 30
     const startM = Math.max(7 * 60, Math.min(19 * 60, snapped))
@@ -56,9 +45,7 @@ export default function RightPanel({
   }
 
   return (
-    <div className={`right-panel ${className}`} onClick={e => {
-      if (e.target === e.currentTarget) setPendingDelete(null)
-    }}>
+    <div className={`right-panel ${className}`}>
       {/* Stats bar */}
       <div className="stats-bar">
         <div>
@@ -96,13 +83,27 @@ export default function RightPanel({
             schedule={schedule}
             conflicts={conflicts}
             theme={theme}
-            pendingDelete={pendingDelete}
+            selectedIdx={selectedIdx}
             onSlotHover={handleSlotHover}
             onSlotClick={handleSlotClick}
+            onSlotEdit={onEdit}
             onEmptyClick={handleEmptyClick}
             onSlotMove={onMoveSlot}
           />
         </div>
+        {selectedIdx !== null && (
+          <div className="canvas-action-bar">
+            <button className="cab-btn cab-edit" onClick={() => onEdit(selectedIdx)}>
+              ✎ แก้ไข
+            </button>
+            <button className="cab-btn cab-delete" onClick={() => setDeleteConfirmIdx(selectedIdx)}>
+              🗑 ลบ
+            </button>
+            <button className="cab-btn cab-close" onClick={() => setSelectedIdx(null)}>
+              ✕
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Course table */}

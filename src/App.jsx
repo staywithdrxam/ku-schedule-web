@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { THEMES, THEME_NAMES } from './themes'
 import { DAYS, COLORS, t2m } from './constants'
 import SplashScreen from './components/SplashScreen'
@@ -55,6 +55,7 @@ export default function App() {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [copiedCourse, setCopiedCourse] = useState(null)
   const [copyToast, setCopyToast] = useState('')
+  const pasteIdxRef = useRef(-1)
 
   const setTheme = useCallback((val) => {
     if (val === '__auto__') {
@@ -87,7 +88,8 @@ export default function App() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setSplash(false)
-      setShowTutorial(true)
+      const hideUntil = parseInt(localStorage.getItem('ku_tutorial_hide_until') || '0')
+      setShowTutorial(Date.now() >= hideUntil)
     }, 1600)
     return () => clearTimeout(timer)
   }, [])
@@ -172,14 +174,22 @@ export default function App() {
       if (mod && e.key === 'v' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
         setCopiedCourse(copied => {
           if (!copied) return copied
+          pasteIdxRef.current = -1
           setSchedule(prev => {
             setUndoStack(stack => [...stack.slice(-19), prev])
-            const pasted = { ...copied, name: copied.name ? `${copied.name} (สำเนา)` : '', slots: [] }
+            pasteIdxRef.current = prev.length
+            const pasted = { ...copied, name: copied.name ? `${copied.name} (สำเนา)` : '' }
             return assignColors([...prev, pasted])
           })
           setUnsaved(true)
-          setCopyToast('วางวิชาแล้ว')
-          setTimeout(() => setCopyToast(''), 2000)
+          setTimeout(() => {
+            if (pasteIdxRef.current >= 0) {
+              setEditIdx(pasteIdxRef.current)
+              setDialogOpen(true)
+            }
+          }, 0)
+          setCopyToast('วางวิชาแล้ว — แก้ไขเวลาได้เลย')
+          setTimeout(() => setCopyToast(''), 2500)
           return copied
         })
         e.preventDefault()
