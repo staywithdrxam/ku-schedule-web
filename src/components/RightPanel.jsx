@@ -8,12 +8,14 @@ const toTimeStr = (m) =>
 export default function RightPanel({
   className = '',
   schedule, conflicts, selectedIdx, setSelectedIdx,
-  onEdit, onDelete, onAddAt, theme, semester, tooltip, setTooltip
+  onEdit, onDelete, onAddAt, theme, semester, tooltip, setTooltip,
+  leftCollapsed
 }) {
   const totalCr = schedule.reduce((s, c) => s + (Number(c.credits) || 0), 0)
   const totalSlots = schedule.reduce((s, c) => s + (c.slots || []).length, 0)
   const [pendingDelete, setPendingDelete] = useState(null)
   const [tableCollapsed, setTableCollapsed] = useState(false)
+  const hideTable = leftCollapsed || tableCollapsed
 
   function handleSlotHover(hit) {
     if (!hit) { setTooltip(null); return }
@@ -127,7 +129,7 @@ export default function RightPanel({
             </>
           )}
         </div>
-        <div style={{ maxHeight: 150, overflowY: 'auto', display: tableCollapsed ? 'none' : undefined }}>
+        <div style={{ maxHeight: 150, overflowY: 'auto', display: hideTable ? 'none' : undefined }}>
           <table>
             <thead>
               <tr>

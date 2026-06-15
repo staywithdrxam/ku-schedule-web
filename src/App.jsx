@@ -155,6 +155,7 @@ export default function App() {
           onEdit={openEdit} onDelete={deleteCourse} onAddAt={openAddAt}
           tooltip={tooltip} setTooltip={setTooltip}
           theme={theme} semester={semester}
+          leftCollapsed={leftCollapsed}
         />
       </div>
 
