@@ -89,39 +89,43 @@ export default function TimetableCanvas({ schedule, conflicts, theme, pendingDel
       }
     }
 
-    // ── Vertical time grid ───────────────────────────────
+    // ── Vertical time grid (hour lines only) ────────────
     TIMES.map(tm => t2m(tm)).forEach(m => {
       if (m < START_M || m > END_M) return
       const x = LABEL_W + ((m - START_M) / TOTAL_M) * TIME_W
       const isHour = m % 60 === 0
-      ctx.strokeStyle = isHour ? t.GRID_MAJOR : t.GRID_MINOR
-      ctx.lineWidth   = isHour ? 0.8 : 0.4
+      if (!isHour) return                           // skip 30-min minor lines
+      ctx.strokeStyle = t.GRID_MAJOR
+      ctx.globalAlpha = 0.45
+      ctx.lineWidth   = 0.6
       ctx.beginPath(); ctx.moveTo(x, HEAD_H); ctx.lineTo(x, H); ctx.stroke()
+      ctx.globalAlpha = 1
 
-      if (isHour) {
-        const hh = String(Math.floor(m / 60)).padStart(2, '0')
-        ctx.fillStyle = t.MUTED
-        ctx.font      = `600 11px 'Noto Sans Thai', sans-serif`
-        const labelY  = HEAD_H / 2 + 5
-        if (m === START_M) {
-          ctx.textAlign = 'left'
-          ctx.fillText(`${hh}:00`, x + 3, labelY)
-        } else if (m === END_M) {
-          ctx.textAlign = 'right'
-          ctx.fillText(`${hh}:00`, x - 3, labelY)
-        } else {
-          ctx.textAlign = 'center'
-          ctx.fillText(`${hh}:00`, x, labelY)
-        }
+      const hh = String(Math.floor(m / 60)).padStart(2, '0')
+      ctx.fillStyle = t.MUTED
+      ctx.font      = `600 11px 'Noto Sans Thai', sans-serif`
+      const labelY  = HEAD_H / 2 + 5
+      if (m === START_M) {
+        ctx.textAlign = 'left'
+        ctx.fillText(`${hh}:00`, x + 3, labelY)
+      } else if (m === END_M) {
+        ctx.textAlign = 'right'
+        ctx.fillText(`${hh}:00`, x - 3, labelY)
+      } else {
+        ctx.textAlign = 'center'
+        ctx.fillText(`${hh}:00`, x, labelY)
       }
     })
 
     // ── Horizontal day separator lines ───────────────────
     for (let di = 0; di <= DAYS.length; di++) {
       const y = HEAD_H + di * ROW_H
+      const isEdge = di === 0 || di === DAYS.length
       ctx.strokeStyle = t.GRID_MAJOR
-      ctx.lineWidth   = di === 0 || di === DAYS.length ? 1 : 0.6
+      ctx.globalAlpha = isEdge ? 0.7 : 0.25
+      ctx.lineWidth   = isEdge ? 0.8 : 0.5
       ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke()
+      ctx.globalAlpha = 1
     }
 
     // ── Day label column ─────────────────────────────────
