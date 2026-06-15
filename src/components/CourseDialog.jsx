@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { DAYS, DAY_FULL, TIMES, COLORS } from '../constants'
 import ColorWheel from './ColorWheel'
 
@@ -16,6 +16,12 @@ export default function CourseDialog({ initial, prefillSlot, onSubmit, onCancel 
     if (prefillSlot) return [{ day: prefillSlot.day, start: prefillSlot.start, end: prefillSlot.end, room: '', isLab: false }]
     return [DEFAULT_SLOT()]
   })
+
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') onCancel() }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [onCancel])
 
   function addSlot() { setSlots(prev => [...prev, DEFAULT_SLOT()]) }
   function removeSlot(i) { setSlots(prev => prev.filter((_, idx) => idx !== i)) }

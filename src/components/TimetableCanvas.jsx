@@ -32,6 +32,8 @@ const HEAD_H  = 48
 
 export default function TimetableCanvas({ schedule, conflicts, theme, pendingDelete, onSlotHover, onSlotClick, onEmptyClick }) {
   const canvasRef = useRef()
+  const hoverPosRef = useRef(null)
+  const rafRef = useRef(null)
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current
@@ -61,6 +63,31 @@ export default function TimetableCanvas({ schedule, conflicts, theme, pendingDel
       ctx.fillStyle = DAY_BG[di]
       ctx.fillRect(LABEL_W, HEAD_H + di * ROW_H, TIME_W, ROW_H)
     })
+
+    // ── Hover highlight ──────────────────────────────────
+    const hover = hoverPosRef.current
+    if (hover !== null && hover.di >= 0 && hover.di < DAYS.length) {
+      const hy0 = HEAD_H + hover.di * ROW_H
+      // row glow
+      ctx.fillStyle = DAY_HDR[hover.di]
+      ctx.globalAlpha = 0.18
+      ctx.fillRect(LABEL_W, hy0, TIME_W, ROW_H)
+      // left label glow
+      ctx.globalAlpha = 0.25
+      ctx.fillRect(0, hy0, LABEL_W, ROW_H)
+      ctx.globalAlpha = 1
+      // vertical time cursor
+      if (hover.minM >= START_M && hover.minM <= END_M) {
+        const hx = LABEL_W + ((hover.minM - START_M) / TOTAL_M) * TIME_W
+        ctx.strokeStyle = DAY_HDR[hover.di]
+        ctx.globalAlpha = 0.55
+        ctx.lineWidth = 1.5
+        ctx.setLineDash([5, 4])
+        ctx.beginPath(); ctx.moveTo(hx, HEAD_H); ctx.lineTo(hx, H); ctx.stroke()
+        ctx.setLineDash([])
+        ctx.globalAlpha = 1
+      }
+    }
 
     // ── Vertical time grid ───────────────────────────────
     TIMES.map(tm => t2m(tm)).forEach(m => {
@@ -319,7 +346,32 @@ export default function TimetableCanvas({ schedule, conflicts, theme, pendingDel
     return { di, minM }
   }
 
+  function updateHover(e) {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const rect = canvas.getBoundingClientRect()
+    const mx = e.clientX - rect.left
+    const my = e.clientY - rect.top
+    const W = rect.width, H = rect.height
+    if (mx >= LABEL_W && my >= HEAD_H && mx <= W && my <= H) {
+      const rh = (H - HEAD_H) / DAYS.length
+      const di = Math.floor((my - HEAD_H) / rh)
+      if (di >= 0 && di < DAYS.length) {
+        const minM = START_M + ((mx - LABEL_W) / (W - LABEL_W)) * TOTAL_M
+        hoverPosRef.current = { di, minM }
+      } else {
+        hoverPosRef.current = null
+      }
+    } else {
+      hoverPosRef.current = null
+    }
+    if (!rafRef.current) {
+      rafRef.current = requestAnimationFrame(() => { draw(); rafRef.current = null })
+    }
+  }
+
   function handleMouseMove(e) {
+    updateHover(e)
     onSlotHover && onSlotHover(getSlotAt(e) || null)
   }
   function handleClick(e) {
@@ -337,7 +389,11 @@ export default function TimetableCanvas({ schedule, conflicts, theme, pendingDel
       ref={canvasRef}
       style={{ width: '100%', height: '100%', display: 'block', cursor: 'crosshair' }}
       onMouseMove={handleMouseMove}
-      onMouseLeave={() => onSlotHover && onSlotHover(null)}
+      onMouseLeave={() => {
+        hoverPosRef.current = null
+        draw()
+        onSlotHover && onSlotHover(null)
+      }}
       onClick={handleClick}
       onTouchStart={e => {
         const touch = e.touches[0]
