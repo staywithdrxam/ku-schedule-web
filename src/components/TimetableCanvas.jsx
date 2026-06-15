@@ -139,11 +139,13 @@ export default function TimetableCanvas({ schedule, conflicts, theme, pendingDel
       ctx.fillRect(0, y0 + 5, 3, ROW_H - 10)
       ctx.globalAlpha = 1
 
-      // Day name (full Thai)
-      ctx.fillStyle  = DAY_HDR[di]
-      ctx.font       = `700 10px 'Noto Sans Thai', sans-serif`
-      ctx.textAlign  = 'center'
-      ctx.fillText(DAY_FULL[d] || d, LABEL_W / 2, cy + 4)
+      // Day name (full Thai) — textBaseline middle for accurate vertical center
+      ctx.fillStyle    = DAY_HDR[di]
+      ctx.font         = `700 11px 'Noto Sans Thai', sans-serif`
+      ctx.textAlign    = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(DAY_FULL[d] || d, LABEL_W / 2, cy)
+      ctx.textBaseline = 'alphabetic'
     })
 
     // ── Header top-left corner ───────────────────────────
